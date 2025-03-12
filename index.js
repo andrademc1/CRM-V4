@@ -79,10 +79,17 @@ async function inicializarBancoDados() {
       CREATE TABLE IF NOT EXISTS owners (
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100) NOT NULL,
-        email VARCHAR(100),
-        telefone VARCHAR(20),
-        empresa VARCHAR(100),
-        observacoes TEXT,
+        status VARCHAR(20) DEFAULT 'active',
+        logo_url TEXT,
+        apply_billing BOOLEAN DEFAULT false,
+        billing_name VARCHAR(100),
+        billing_vat VARCHAR(50),
+        billing_address1 VARCHAR(200),
+        billing_address2 VARCHAR(200),
+        billing_city VARCHAR(100),
+        billing_state VARCHAR(100),
+        billing_zipcode VARCHAR(20),
+        billing_country VARCHAR(5),
         data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -195,22 +202,68 @@ app.get('/bookmakers/adicionar-owner', requireLogin, (req, res) => {
 
 // Rota para processar adição de owner
 app.post('/bookmakers/adicionar-owner', requireLogin, async (req, res) => {
-  const { nome, email, telefone, empresa, observacoes } = req.body;
+  const { 
+    nome, 
+    ownerStatus,
+    applyBilling,
+    billingName,
+    billingVat,
+    billingAddress1,
+    billingAddress2,
+    billingCity,
+    billingState,
+    billingZipCode,
+    countryCode
+  } = req.body;
   
-  if (!nome || !email || !telefone || !empresa) {
+  if (!nome) {
     return res.render('adicionar-owner', { 
       usuario: req.session.usuarioLogado,
-      erro: 'Os campos Nome, Email, Telefone e Empresa são obrigatórios'
+      erro: 'O campo Nome é obrigatório'
     });
   }
+  
+  // Verificar se está aplicando detalhes de faturamento
+  const applyBillingBool = applyBilling === 'yes';
   
   try {
     const client = await getDbClient();
     
+    // Processar upload de logo (implementação básica, sem armazenamento real de arquivos)
+    // Em uma implementação completa, você iria salvar o arquivo em um serviço de armazenamento
+    // e guardar apenas a URL no banco de dados
+    const logoUrl = ''; // Aqui seria o URL do logo após upload
+    
     // Inserir novo owner
     await client.query(
-      'INSERT INTO owners (nome, email, telefone, empresa, observacoes) VALUES ($1, $2, $3, $4, $5)',
-      [nome, email, telefone, empresa, observacoes]
+      `INSERT INTO owners (
+        nome, 
+        status, 
+        logo_url,
+        apply_billing,
+        billing_name,
+        billing_vat,
+        billing_address1,
+        billing_address2,
+        billing_city,
+        billing_state,
+        billing_zipcode,
+        billing_country
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      [
+        nome, 
+        ownerStatus, 
+        logoUrl,
+        applyBillingBool,
+        applyBillingBool ? billingName : null,
+        applyBillingBool ? billingVat : null,
+        applyBillingBool ? billingAddress1 : null,
+        applyBillingBool ? billingAddress2 : null,
+        applyBillingBool ? billingCity : null,
+        applyBillingBool ? billingState : null,
+        applyBillingBool ? billingZipCode : null,
+        applyBillingBool ? countryCode : null
+      ]
     );
     
     await client.end();
@@ -226,7 +279,7 @@ app.post('/bookmakers/adicionar-owner', requireLogin, async (req, res) => {
     console.error('Erro ao adicionar owner:', err);
     res.render('adicionar-owner', { 
       usuario: req.session.usuarioLogado,
-      erro: 'Erro ao adicionar owner'
+      erro: 'Erro ao adicionar owner: ' + err.message
     });
   }
 });

@@ -1,4 +1,46 @@
 
+/* Badges para status */
+.badge {
+  display: inline-block;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 3px;
+  color: white;
+}
+
+.badge-success {
+  background-color: #28a745;
+}
+
+.badge-danger {
+  background-color: #dc3545;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+}
+
+/* Select e file input */
+select.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+}
+
+input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+}
+
+
 /* Estilos Gerais */
 * {
   box-sizing: border-box;

@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Adicionar Owner - CRM</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/tabs.css">
 </head>
 <body>
   <div class="dashboard-container">
@@ -42,33 +43,106 @@
         <% } %>
         
         <div class="form-container">
-          <form action="/bookmakers/adicionar-owner" method="POST">
-            <div class="form-group">
-              <label for="nome">Nome</label>
-              <input type="text" id="nome" name="nome" required>
+          <div class="tab">
+            <button class="tab-link active" data-tab="tabOwnerSettings">Owner Settings</button>
+            <button class="tab-link" data-tab="tabBillingDetails">Owner Billing Details</button>
+          </div>
+          
+          <form action="/bookmakers/adicionar-owner" method="POST" enctype="multipart/form-data">
+            <!-- Aba de Owner Settings -->
+            <div id="tabOwnerSettings" class="tab-content">
+              <div class="form-group">
+                <label for="ownerStatus">Owner Status</label>
+                <select id="ownerStatus" name="ownerStatus" class="form-control">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="nome">Owner Name</label>
+                <input type="text" id="nome" name="nome" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="ownerLogo">Owner Logo</label>
+                <input type="file" id="ownerLogo" name="ownerLogo" accept="image/*">
+                <div class="logo-preview-container">
+                  <img id="logoPreview" class="logo-preview" src="" alt="Logo Preview">
+                </div>
+              </div>
             </div>
             
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input type="email" id="email" name="email" required>
+            <!-- Aba de Owner Billing Details -->
+            <div id="tabBillingDetails" class="tab-content">
+              <div class="form-group">
+                <label>Apply Billing Details by Owner?</label>
+                <div class="radio-group">
+                  <div class="radio-option">
+                    <input type="radio" id="applyBillingNo" name="applyBilling" value="no" checked>
+                    <label for="applyBillingNo">No</label>
+                  </div>
+                  <div class="radio-option">
+                    <input type="radio" id="applyBillingYes" name="applyBilling" value="yes">
+                    <label for="applyBillingYes">Yes</label>
+                  </div>
+                </div>
+              </div>
+              
+              <div id="billingDetailsSection">
+                <h4>Billing Details</h4>
+                
+                <div class="form-group">
+                  <label for="billingName">Name</label>
+                  <input type="text" id="billingName" name="billingName">
+                </div>
+                
+                <div class="form-group">
+                  <label for="billingVat">VAT</label>
+                  <input type="text" id="billingVat" name="billingVat">
+                </div>
+                
+                <div class="form-group">
+                  <label for="billingAddress1">Address 1</label>
+                  <input type="text" id="billingAddress1" name="billingAddress1">
+                </div>
+                
+                <div class="form-group">
+                  <label for="billingAddress2">Address 2</label>
+                  <input type="text" id="billingAddress2" name="billingAddress2">
+                </div>
+                
+                <div class="form-group">
+                  <label for="billingCity">City</label>
+                  <input type="text" id="billingCity" name="billingCity">
+                </div>
+                
+                <div class="form-group">
+                  <label for="billingState">State/Province/Region</label>
+                  <input type="text" id="billingState" name="billingState">
+                </div>
+                
+                <div class="form-group">
+                  <label for="billingZipCode">Zip-Code</label>
+                  <input type="text" id="billingZipCode" name="billingZipCode">
+                </div>
+                
+                <div class="form-group">
+                  <label for="countrySearch">Country</label>
+                  <input type="hidden" id="countryCode" name="countryCode">
+                  <div class="country-selector">
+                    <div id="selectedCountry" class="country-display">Select a country</div>
+                    <div class="country-search">
+                      <input type="text" id="countrySearch" placeholder="Search country...">
+                    </div>
+                    <ul id="countryList" class="country-list"></ul>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <div class="form-group">
-              <label for="telefone">Telefone</label>
-              <input type="text" id="telefone" name="telefone" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="empresa">Empresa</label>
-              <input type="text" id="empresa" name="empresa" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="observacoes">Observações</label>
-              <textarea id="observacoes" name="observacoes" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
-            </div>
-            
-            <div class="form-actions">
+            <div class="form-actions" style="margin-top: 20px;">
               <button type="submit" class="btn btn-primary">Salvar</button>
               <a href="/bookmakers" class="btn" style="background-color: #6c757d;">Cancelar</a>
             </div>
@@ -77,5 +151,8 @@
       </main>
     </div>
   </div>
+  
+  <script src="/js/countries.js"></script>
+  <script src="/js/tabs.js"></script>
 </body>
 </html>

@@ -1,0 +1,144 @@
+
+/* Estilos para o sistema de abas */
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f8f9fa;
+  border-radius: 4px 4px 0 0;
+}
+
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+  font-size: 14px;
+  border-right: 1px solid #ddd;
+}
+
+.tab button:hover {
+  background-color: #e9ecef;
+}
+
+.tab button.active {
+  background-color: white;
+  border-bottom: 2px solid #3498db;
+}
+
+.tab-content {
+  display: none;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-top: none;
+  background-color: white;
+  border-radius: 0 0 4px 4px;
+}
+
+/* Estilos para o seletor de países */
+.country-selector {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.country-display {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background-color: white;
+}
+
+.country-search {
+  margin-top: 5px;
+}
+
+.country-search input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.country-list {
+  display: none;
+  position: absolute;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  background-color: white;
+  z-index: 10;
+}
+
+.country-list li {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.country-list li:hover {
+  background-color: #f5f7fa;
+}
+
+.country-flag {
+  margin-right: 8px;
+  font-size: 1.2em;
+}
+
+/* Estilos para upload e preview de imagem */
+.logo-preview-container {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-preview {
+  max-width: 150px;
+  max-height: 100px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  display: none;
+  padding: 5px;
+}
+
+/* Estilos para radio buttons */
+.radio-group {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+}
+
+.radio-option label {
+  margin-left: 5px;
+  margin-bottom: 0;
+}
+
+/* Estilos para a seção de detalhes de faturação */
+#billingDetailsSection {
+  display: none;
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+}
+
+#billingDetailsSection h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
