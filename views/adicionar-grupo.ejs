@@ -486,13 +486,13 @@
           
           // Adicionar bandeira e nome do país
           listItem.innerHTML = `
-            <span class="country-flag">${country.flag}</span>
+            <span class="country-flag">${country.emoji}</span>
             <span>${country.name}</span>
           `;
           
           // Adicionar evento de clique
           listItem.addEventListener('click', function() {
-            selectedCountry.innerHTML = `<span class="country-flag">${country.flag}</span> ${country.name}`;
+            selectedCountry.innerHTML = `<span class="country-flag">${country.emoji}</span> ${country.name}`;
             countryCodeInput.value = code;
             countryList.style.display = 'none';
             countrySearch.value = '';
@@ -545,7 +545,7 @@
         
         // Obter emoji da bandeira do país
         const countryEmoji = billing.countryCode && countries[billing.countryCode] ? 
-          countries[billing.countryCode].flag : '';
+          countries[billing.countryCode].emoji : '';
         
         let cardContent = `
           <div class="card-header">
