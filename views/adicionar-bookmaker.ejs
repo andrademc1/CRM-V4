@@ -46,6 +46,7 @@
           <!-- Tab links -->
           <div class="tab">
             <button class="tab-link active" data-tab="bookmakerSettings">Bookmaker Settings</button>
+            <button class="tab-link" data-tab="bookmakerAccountSettings">Bookmaker Account Settings</button>
           </div>
 
           <form action="/bookmakers/adicionar-bookmaker" method="POST" enctype="multipart/form-data">
@@ -99,6 +100,70 @@
                   <input type="hidden" id="selectedCountriesData" name="selectedCountriesData">
                 </div>
               </div>
+            </div>
+
+            <!-- Bookmaker Account Settings Tab -->
+            <div id="bookmakerAccountSettings" class="tab-content">
+              <!-- Botão para adicionar conta -->
+              <div class="add-account-section">
+                <button type="button" id="addAccountButton" class="btn btn-success">Add Account</button>
+              </div>
+
+              <!-- Seção de detalhes da conta -->
+              <div id="accountDetailsSection" style="display: none;">
+                <h4>Account Details</h4>
+                
+                <div class="form-group">
+                  <label for="ownerSelect">Owner:</label>
+                  <select id="ownerSelect" name="ownerSelect">
+                    <option value="">Select an Owner</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="accountStatus">Account Status:</label>
+                  <select id="accountStatus" name="accountStatus">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="accountUsername">Username/Email:</label>
+                  <input type="text" id="accountUsername" name="accountUsername">
+                </div>
+
+                <div class="form-group">
+                  <label for="accountPassword">Password:</label>
+                  <input type="password" id="accountPassword" name="accountPassword">
+                </div>
+                
+                <div class="form-group">
+                  <label for="associatedGeographies">Associated Geographies:</label>
+                  <div class="country-multi-selector">
+                    <div class="country-search">
+                      <input type="text" id="accountCountrySearch" placeholder="Search countries...">
+                    </div>
+                    <div class="selected-countries" id="accountSelectedCountries"></div>
+                    <ul id="accountCountryList" class="country-list"></ul>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" id="saveAccountButton" class="btn btn-success">Save Account</button>
+                </div>
+              </div>
+
+              <!-- Seção para exibir as contas salvas -->
+              <div id="savedAccountsSection" style="display: none;" class="saved-accounts-section">
+                <h4>Saved Accounts</h4>
+                <div id="accountsList" class="accounts-list"></div>
+                <button type="button" id="addMoreAccountButton" class="btn btn-info">Add Another Account</button>
+              </div>
+
+              <!-- Input hidden para armazenar os dados das contas em formato JSON -->
+              <input type="hidden" id="savedBookmakerAccountsData" name="savedBookmakerAccountsData">
             </div>
 
             <div class="form-actions">
@@ -289,7 +354,272 @@
         } else {
           countryList.style.display = 'block';
         }
+        
+        // Para a lista de países na aba Account Settings
+        if (e.target !== document.getElementById('accountCountrySearch') && 
+            !document.getElementById('accountCountryList').contains(e.target)) {
+          document.getElementById('accountCountryList').style.display = 'none';
+        } else if (e.target === document.getElementById('accountCountrySearch')) {
+          document.getElementById('accountCountryList').style.display = 'block';
+        }
       });
+      
+      // Bookmaker Account Settings
+      const addAccountButton = document.getElementById('addAccountButton');
+      const accountDetailsSection = document.getElementById('accountDetailsSection');
+      const savedAccountsSection = document.getElementById('savedAccountsSection');
+      const saveAccountButton = document.getElementById('saveAccountButton');
+      const addMoreAccountButton = document.getElementById('addMoreAccountButton');
+      const accountsList = document.getElementById('accountsList');
+      const savedBookmakerAccountsData = document.getElementById('savedBookmakerAccountsData');
+      
+      // Array para armazenar as contas salvas
+      const savedAccounts = [];
+      
+      // Carregar owners
+      fetch('/api/owners')
+        .then(response => response.json())
+        .then(owners => {
+          const ownerSelect = document.getElementById('ownerSelect');
+          // Limpar opções existentes
+          ownerSelect.innerHTML = '<option value="">Select an Owner</option>';
+          
+          // Adicionar owners ao dropdown
+          owners.forEach(owner => {
+            const option = document.createElement('option');
+            option.value = owner.id;
+            option.textContent = owner.nome;
+            ownerSelect.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.error('Erro ao carregar owners:', error);
+          // Opções de fallback em caso de erro
+          const ownerSelect = document.getElementById('ownerSelect');
+          ownerSelect.innerHTML = `
+            <option value="">Select an Owner</option>
+            <option value="1">Owner 1</option>
+            <option value="2">Owner 2</option>
+            <option value="3">Owner 3</option>
+          `;
+        });
+        
+      // Popular a lista de países para a conta
+      const accountCountryList = document.getElementById('accountCountryList');
+      const accountCountrySearch = document.getElementById('accountCountrySearch');
+      const accountSelectedCountries = document.getElementById('accountSelectedCountries');
+      
+      // Array para armazenar os países selecionados para a conta
+      const accountSelectedCountriesArray = [];
+      
+      // Função para adicionar badge de país para a conta
+      function addAccountCountryBadge(code, name, flag) {
+        const badge = document.createElement('div');
+        badge.className = 'country-badge';
+        badge.dataset.code = code;
+        
+        badge.innerHTML = `
+          <span class="country-flag">${flag}</span>
+          <span>${name}</span>
+          <span class="badge-remove" data-code="${code}">&times;</span>
+        `;
+        
+        // Adicionar evento para remover o país
+        const removeButton = badge.querySelector('.badge-remove');
+        removeButton.addEventListener('click', function(e) {
+          const countryCode = this.dataset.code;
+          
+          // Remover do array
+          const index = accountSelectedCountriesArray.findIndex(c => c.code === countryCode);
+          if (index !== -1) {
+            accountSelectedCountriesArray.splice(index, 1);
+          }
+          
+          // Remover o badge
+          badge.remove();
+          
+          e.stopPropagation();
+        });
+        
+        accountSelectedCountries.appendChild(badge);
+      }
+      
+      // Função para filtrar países na lista da conta
+      function filterAccountCountries(searchValue) {
+        const items = accountCountryList.getElementsByTagName('li');
+        
+        for (let i = 0; i < items.length; i++) {
+          const countryName = items[i].dataset.name.toLowerCase();
+          if (countryName.includes(searchValue)) {
+            items[i].style.display = '';
+          } else {
+            items[i].style.display = 'none';
+          }
+        }
+      }
+      
+      // Função para adicionar card da conta
+      function addAccountCard(account) {
+        const card = document.createElement('div');
+        card.className = 'account-card';
+        
+        let countriesHtml = '';
+        if (account.countries && account.countries.length > 0) {
+          countriesHtml = '<p><strong>Associated Countries:</strong></p><div class="account-countries">';
+          account.countries.forEach(country => {
+            countriesHtml += `<span class="country-mini-badge"><span class="country-flag">${country.flag}</span> ${country.name}</span>`;
+          });
+          countriesHtml += '</div>';
+        }
+        
+        let cardContent = `
+          <h5>${account.owner}</h5>
+          <p><strong>Status:</strong> ${account.status}</p>
+          <p><strong>Username:</strong> ${account.username}</p>
+          <p><strong>Password:</strong> ${account.password.replace(/./g, '*')}</p>
+          ${countriesHtml}
+        `;
+        
+        card.innerHTML = cardContent;
+        accountsList.appendChild(card);
+      }
+      
+      // Evento para o botão Add Account
+      if (addAccountButton) {
+        addAccountButton.addEventListener('click', function() {
+          accountDetailsSection.style.display = 'block';
+          
+          // Limpar a lista de países associados atual
+          accountSelectedCountries.innerHTML = '';
+          accountSelectedCountriesArray.length = 0;
+          
+          // Popular a lista de países com base nos países selecionados na aba Bookmaker Settings
+          accountCountryList.innerHTML = '';
+          
+          const mainSelectedCountries = JSON.parse(selectedCountriesData.value || '[]');
+          
+          mainSelectedCountries.forEach(country => {
+            const countryObj = countries[country.code];
+            if (countryObj) {
+              const listItem = document.createElement('li');
+              listItem.dataset.code = country.code;
+              listItem.dataset.name = country.name;
+              
+              // Adicionar bandeira e nome do país
+              listItem.innerHTML = `
+                <span class="country-flag">${country.flag}</span>
+                <span>${country.name}</span>
+              `;
+              
+              // Adicionar evento de clique
+              listItem.addEventListener('click', function() {
+                const countryCode = this.dataset.code;
+                const countryName = this.dataset.name;
+                const countryFlag = country.flag;
+                
+                // Verificar se o país já está selecionado
+                if (!accountSelectedCountriesArray.some(c => c.code === countryCode)) {
+                  // Adicionar ao array
+                  accountSelectedCountriesArray.push({
+                    code: countryCode,
+                    name: countryName,
+                    flag: countryFlag
+                  });
+                  
+                  // Adicionar badge à área de países selecionados
+                  addAccountCountryBadge(countryCode, countryName, countryFlag);
+                }
+                
+                // Limpar a pesquisa
+                accountCountrySearch.value = '';
+                filterAccountCountries('');
+              });
+              
+              accountCountryList.appendChild(listItem);
+            }
+          });
+        });
+      }
+      
+      // Evento para a busca de países na conta
+      if (accountCountrySearch) {
+        accountCountrySearch.addEventListener('input', function() {
+          filterAccountCountries(this.value.toLowerCase());
+        });
+        
+        accountCountrySearch.addEventListener('focus', function() {
+          accountCountryList.style.display = 'block';
+        });
+      }
+      
+      // Evento para o botão Save Account
+      if (saveAccountButton) {
+        saveAccountButton.addEventListener('click', function() {
+          const ownerSelect = document.getElementById('ownerSelect');
+          const accountStatus = document.getElementById('accountStatus');
+          const accountUsername = document.getElementById('accountUsername');
+          const accountPassword = document.getElementById('accountPassword');
+          
+          // Validar campos obrigatórios
+          if (!ownerSelect.value) {
+            alert('Please select an owner');
+            return;
+          }
+          
+          if (!accountUsername.value) {
+            alert('Please enter a username/email');
+            return;
+          }
+          
+          if (!accountPassword.value) {
+            alert('Please enter a password');
+            return;
+          }
+          
+          // Criar objeto da conta
+          const accountData = {
+            ownerId: ownerSelect.value,
+            owner: ownerSelect.options[ownerSelect.selectedIndex].text,
+            status: accountStatus.value,
+            username: accountUsername.value,
+            password: accountPassword.value,
+            countries: [...accountSelectedCountriesArray]
+          };
+          
+          // Adicionar ao array de contas
+          savedAccounts.push(accountData);
+          
+          // Atualizar o input hidden com os dados das contas
+          savedBookmakerAccountsData.value = JSON.stringify(savedAccounts);
+          
+          // Mostrar a seção de contas salvas
+          savedAccountsSection.style.display = 'block';
+          
+          // Adicionar card visual para a conta
+          addAccountCard(accountData);
+          
+          // Limpar formulário
+          ownerSelect.selectedIndex = 0;
+          accountStatus.selectedIndex = 0;
+          accountUsername.value = '';
+          accountPassword.value = '';
+          accountSelectedCountries.innerHTML = '';
+          accountSelectedCountriesArray.length = 0;
+          
+          // Esconder seção de detalhes da conta
+          accountDetailsSection.style.display = 'none';
+          
+          alert('Account details saved!');
+        });
+      }
+      
+      // Evento para o botão Add More Account
+      if (addMoreAccountButton) {
+        addMoreAccountButton.addEventListener('click', function() {
+          // Mostrar seção de detalhes da conta para adicionar outra
+          accountDetailsSection.style.display = 'block';
+        });
+      }
     });
   </script>
 </body>

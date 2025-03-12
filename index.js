@@ -503,7 +503,8 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
     nome, 
     status, 
     affiliateUrl,
-    selectedCountriesData
+    selectedCountriesData,
+    savedBookmakerAccountsData
   } = req.body;
   
   if (!nome || nome.trim() === '') {
@@ -526,7 +527,7 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
     }
     
     // Inserir novo bookmaker
-    await client.query(
+    const bookmakerResult = await client.query(
       `INSERT INTO bookmakers (
         group_id,
         nome, 
@@ -534,7 +535,7 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
         logo_url, 
         affiliate_url, 
         geographies
-      ) VALUES ($1, $2, $3, $4, $5, $6)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
       [
         groupId,
         nome, 
@@ -544,6 +545,37 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
         selectedCountriesData ? selectedCountriesData : null
       ]
     );
+    
+    // Processar contas do bookmaker
+    if (savedBookmakerAccountsData) {
+      try {
+        const accounts = JSON.parse(savedBookmakerAccountsData);
+        const bookmakerId = bookmakerResult.rows[0].id;
+        
+        for (const account of accounts) {
+          await client.query(
+            `INSERT INTO bookmaker_accounts (
+              bookmaker_id,
+              owner_id,
+              status,
+              username,
+              password,
+              geographies
+            ) VALUES ($1, $2, $3, $4, $5, $6)`,
+            [
+              bookmakerId,
+              account.ownerId,
+              account.status,
+              account.username,
+              account.password,
+              account.countries && account.countries.length > 0 ? JSON.stringify(account.countries) : null
+            ]
+          );
+        }
+      } catch (e) {
+        console.error('Erro ao processar contas do bookmaker:', e);
+      }
+    }
     
     await client.end();
     
