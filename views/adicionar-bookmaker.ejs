@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -112,14 +111,14 @@
               <!-- Seção de detalhes da conta -->
               <div id="accountDetailsSection" style="display: none;">
                 <h4>Account Details</h4>
-                
+
                 <div class="form-group">
                   <div class="autofill-option">
                     <label>Preencher automaticamente com dados do grupo:</label>
                     <button type="button" id="autoFillFromGroup" class="btn btn-sm btn-info">Auto-preencher</button>
                   </div>
                 </div>
-                
+
                 <div class="form-group">
                   <label for="ownerSelect">Owner:</label>
                   <select id="ownerSelect" name="ownerSelect">
@@ -145,7 +144,7 @@
                   <label for="accountPassword">Password:</label>
                   <input type="password" id="accountPassword" name="accountPassword">
                 </div>
-                
+
                 <div class="form-group">
                   <label for="associatedGeographies">Associated Geographies:</label>
                   <div class="country-multi-selector">
@@ -166,7 +165,6 @@
               <div id="savedAccountsSection" style="display: none;" class="saved-accounts-section">
                 <h4>Saved Accounts</h4>
                 <div id="accountsList" class="accounts-list"></div>
-                <button type="button" id="addMoreAccountButton" class="btn btn-info">Add Another Account</button>
               </div>
 
               <!-- Input hidden para armazenar os dados das contas em formato JSON -->
@@ -189,7 +187,7 @@
       // Preview da imagem do logo
       const logoInput = document.getElementById('bookmakerLogo');
       const logoPreview = document.getElementById('logoPreview');
-      
+
       if (logoInput) {
         logoInput.addEventListener('change', function() {
           const file = this.files[0];
@@ -240,7 +238,7 @@
       const countrySearch = document.getElementById('countrySearch');
       const selectedCountries = document.getElementById('selectedCountries');
       const selectedCountriesData = document.getElementById('selectedCountriesData');
-      
+
       // Array para armazenar os países selecionados
       const selectedCountriesArray = [];
 
@@ -248,26 +246,26 @@
       if (countryList && typeof countries !== 'undefined') {
         // Limpar a lista atual
         countryList.innerHTML = '';
-        
+
         // Adicionar cada país à lista
         Object.keys(countries).forEach(code => {
           const country = countries[code];
           const listItem = document.createElement('li');
           listItem.dataset.code = code;
           listItem.dataset.name = country.name;
-          
+
           // Adicionar bandeira e nome do país
           listItem.innerHTML = `
             <span class="country-flag">${country.flag}</span>
             <span>${country.name}</span>
           `;
-          
+
           // Adicionar evento de clique
           listItem.addEventListener('click', function() {
             const countryCode = this.dataset.code;
             const countryName = this.dataset.name;
             const countryFlag = country.flag;
-            
+
             // Verificar se o país já está selecionado
             if (!selectedCountriesArray.some(c => c.code === countryCode)) {
               // Adicionar ao array
@@ -276,19 +274,19 @@
                 name: countryName,
                 flag: countryFlag
               });
-              
+
               // Atualizar o hidden input
               selectedCountriesData.value = JSON.stringify(selectedCountriesArray);
-              
+
               // Adicionar badge à área de países selecionados
               addCountryBadge(countryCode, countryName, countryFlag);
             }
-            
+
             // Limpar a pesquisa
             countrySearch.value = '';
             filterCountries('');
           });
-          
+
           countryList.appendChild(listItem);
         });
       }
@@ -298,33 +296,33 @@
         const badge = document.createElement('div');
         badge.className = 'country-badge';
         badge.dataset.code = code;
-        
+
         badge.innerHTML = `
           <span class="country-flag">${flag}</span>
           <span>${name}</span>
           <span class="badge-remove" data-code="${code}">&times;</span>
         `;
-        
+
         // Adicionar evento para remover o país
         const removeButton = badge.querySelector('.badge-remove');
         removeButton.addEventListener('click', function(e) {
           const countryCode = this.dataset.code;
-          
+
           // Remover do array
           const index = selectedCountriesArray.findIndex(c => c.code === countryCode);
           if (index !== -1) {
             selectedCountriesArray.splice(index, 1);
           }
-          
+
           // Atualizar o hidden input
           selectedCountriesData.value = JSON.stringify(selectedCountriesArray);
-          
+
           // Remover o badge
           badge.remove();
-          
+
           e.stopPropagation();
         });
-        
+
         selectedCountries.appendChild(badge);
       }
 
@@ -333,16 +331,16 @@
         countrySearch.addEventListener('input', function() {
           filterCountries(this.value.toLowerCase());
         });
-        
+
         countrySearch.addEventListener('focus', function() {
           countryList.style.display = 'block';
         });
       }
-      
+
       // Função para filtrar países
       function filterCountries(searchValue) {
         const items = countryList.getElementsByTagName('li');
-        
+
         for (let i = 0; i < items.length; i++) {
           const countryName = items[i].dataset.name.toLowerCase();
           if (countryName.includes(searchValue)) {
@@ -352,7 +350,7 @@
           }
         }
       }
-      
+
       // Clicar fora da lista de países para fechar
       document.addEventListener('click', function(e) {
         if (e.target !== countrySearch && 
@@ -361,7 +359,7 @@
         } else {
           countryList.style.display = 'block';
         }
-        
+
         // Para a lista de países na aba Account Settings
         if (e.target !== document.getElementById('accountCountrySearch') && 
             !document.getElementById('accountCountryList').contains(e.target)) {
@@ -370,20 +368,19 @@
           document.getElementById('accountCountryList').style.display = 'block';
         }
       });
-      
+
       // Bookmaker Account Settings
       const addAccountButton = document.getElementById('addAccountButton');
       const accountDetailsSection = document.getElementById('accountDetailsSection');
       const savedAccountsSection = document.getElementById('savedAccountsSection');
       const saveAccountButton = document.getElementById('saveAccountButton');
-      const addMoreAccountButton = document.getElementById('addMoreAccountButton');
       const accountsList = document.getElementById('accountsList');
       const savedBookmakerAccountsData = document.getElementById('savedBookmakerAccountsData');
       const autoFillFromGroupButton = document.getElementById('autoFillFromGroup');
-      
+
       // Array para armazenar as contas salvas
       const savedAccounts = [];
-      
+
       // Carregar owners
       fetch('/api/owners')
         .then(response => response.json())
@@ -391,7 +388,7 @@
           const ownerSelect = document.getElementById('ownerSelect');
           // Limpar opções existentes
           ownerSelect.innerHTML = '<option value="">Select an Owner</option>';
-          
+
           // Adicionar owners ao dropdown
           owners.forEach(owner => {
             const option = document.createElement('option');
@@ -411,51 +408,51 @@
             <option value="3">Owner 3</option>
           `;
         });
-        
+
       // Popular a lista de países para a conta
       const accountCountryList = document.getElementById('accountCountryList');
       const accountCountrySearch = document.getElementById('accountCountrySearch');
       const accountSelectedCountries = document.getElementById('accountSelectedCountries');
-      
+
       // Array para armazenar os países selecionados para a conta
       const accountSelectedCountriesArray = [];
-      
+
       // Função para adicionar badge de país para a conta
       function addAccountCountryBadge(code, name, flag) {
         const badge = document.createElement('div');
         badge.className = 'country-badge';
         badge.dataset.code = code;
-        
+
         badge.innerHTML = `
           <span class="country-flag">${flag}</span>
           <span>${name}</span>
           <span class="badge-remove" data-code="${code}">&times;</span>
         `;
-        
+
         // Adicionar evento para remover o país
         const removeButton = badge.querySelector('.badge-remove');
         removeButton.addEventListener('click', function(e) {
           const countryCode = this.dataset.code;
-          
+
           // Remover do array
           const index = accountSelectedCountriesArray.findIndex(c => c.code === countryCode);
           if (index !== -1) {
             accountSelectedCountriesArray.splice(index, 1);
           }
-          
+
           // Remover o badge
           badge.remove();
-          
+
           e.stopPropagation();
         });
-        
+
         accountSelectedCountries.appendChild(badge);
       }
-      
+
       // Função para filtrar países na lista da conta
       function filterAccountCountries(searchValue) {
         const items = accountCountryList.getElementsByTagName('li');
-        
+
         for (let i = 0; i < items.length; i++) {
           const countryName = items[i].dataset.name.toLowerCase();
           if (countryName.includes(searchValue)) {
@@ -465,12 +462,12 @@
           }
         }
       }
-      
+
       // Função para adicionar card da conta
       function addAccountCard(account) {
         const card = document.createElement('div');
         card.className = 'account-card';
-        
+
         let countriesHtml = '';
         if (account.countries && account.countries.length > 0) {
           countriesHtml = '<p><strong>Associated Countries:</strong></p><div class="account-countries">';
@@ -479,7 +476,7 @@
           });
           countriesHtml += '</div>';
         }
-        
+
         let cardContent = `
           <h5>${account.owner}</h5>
           <p><strong>Status:</strong> ${account.status}</p>
@@ -487,44 +484,44 @@
           <p><strong>Password:</strong> ${account.password.replace(/./g, '*')}</p>
           ${countriesHtml}
         `;
-        
+
         card.innerHTML = cardContent;
         accountsList.appendChild(card);
       }
-      
+
       // Evento para o botão Add Account
       if (addAccountButton) {
         addAccountButton.addEventListener('click', function() {
           accountDetailsSection.style.display = 'block';
-          
+
           // Limpar a lista de países associados atual
           accountSelectedCountries.innerHTML = '';
           accountSelectedCountriesArray.length = 0;
-          
+
           // Popular a lista de países com base nos países selecionados na aba Bookmaker Settings
           accountCountryList.innerHTML = '';
-          
+
           const mainSelectedCountries = JSON.parse(selectedCountriesData.value || '[]');
-          
+
           mainSelectedCountries.forEach(country => {
             const countryObj = countries[country.code];
             if (countryObj) {
               const listItem = document.createElement('li');
               listItem.dataset.code = country.code;
               listItem.dataset.name = country.name;
-              
+
               // Adicionar bandeira e nome do país
               listItem.innerHTML = `
                 <span class="country-flag">${country.flag}</span>
                 <span>${country.name}</span>
               `;
-              
+
               // Adicionar evento de clique
               listItem.addEventListener('click', function() {
                 const countryCode = this.dataset.code;
                 const countryName = this.dataset.name;
                 const countryFlag = country.flag;
-                
+
                 // Verificar se o país já está selecionado
                 if (!accountSelectedCountriesArray.some(c => c.code === countryCode)) {
                   // Adicionar ao array
@@ -533,56 +530,56 @@
                     name: countryName,
                     flag: countryFlag
                   });
-                  
+
                   // Adicionar badge à área de países selecionados
                   addAccountCountryBadge(countryCode, countryName, countryFlag);
                 }
-                
+
                 // Limpar a pesquisa
                 accountCountrySearch.value = '';
                 filterAccountCountries('');
               });
-              
+
               accountCountryList.appendChild(listItem);
             }
           });
         });
       }
-      
+
       // Evento para a busca de países na conta
       if (accountCountrySearch) {
         accountCountrySearch.addEventListener('input', function() {
           filterAccountCountries(this.value.toLowerCase());
         });
-        
+
         accountCountrySearch.addEventListener('focus', function() {
           accountCountryList.style.display = 'block';
         });
       }
-      
+
       // Evento para o botão de preenchimento automático
       if (autoFillFromGroupButton) {
         autoFillFromGroupButton.addEventListener('click', async function() {
           const groupId = document.getElementById('groupId').value;
-          
+
           if (!groupId) {
             alert('Por favor, selecione um grupo na aba Bookmaker Settings primeiro');
             return;
           }
-          
+
           try {
             // Buscar dados do grupo no servidor
             const response = await fetch(`/api/groups/${groupId}/accounts`);
             if (!response.ok) {
               throw new Error('Falha ao obter os dados do grupo');
             }
-            
+
             const data = await response.json();
-            
+
             if (data && data.account) {
               // Preencher os campos com os dados recebidos
               const account = data.account;
-              
+
               // Selecionar o owner correspondente, se disponível
               if (account.owner_id) {
                 const ownerSelect = document.getElementById('ownerSelect');
@@ -593,7 +590,7 @@
                   }
                 }
               }
-              
+
               // Definir o status da conta
               if (account.status) {
                 const accountStatus = document.getElementById('accountStatus');
@@ -605,16 +602,16 @@
                   }
                 }
               }
-              
+
               // Preencher username e password
               if (account.username) {
                 document.getElementById('accountUsername').value = account.username;
               }
-              
+
               if (account.password) {
                 document.getElementById('accountPassword').value = account.password;
               }
-              
+
               alert('Dados preenchidos automaticamente!');
             } else {
               alert('Não foram encontradas contas associadas a este grupo');
@@ -625,7 +622,7 @@
           }
         });
       }
-      
+
       // Evento para o botão Save Account
       if (saveAccountButton) {
         saveAccountButton.addEventListener('click', function() {
@@ -633,23 +630,23 @@
           const accountStatus = document.getElementById('accountStatus');
           const accountUsername = document.getElementById('accountUsername');
           const accountPassword = document.getElementById('accountPassword');
-          
+
           // Validar campos obrigatórios
           if (!ownerSelect.value) {
             alert('Please select an owner');
             return;
           }
-          
+
           if (!accountUsername.value) {
             alert('Please enter a username/email');
             return;
           }
-          
+
           if (!accountPassword.value) {
             alert('Please enter a password');
             return;
           }
-          
+
           // Criar objeto da conta
           const accountData = {
             ownerId: ownerSelect.value,
@@ -659,19 +656,19 @@
             password: accountPassword.value,
             countries: [...accountSelectedCountriesArray]
           };
-          
+
           // Adicionar ao array de contas
           savedAccounts.push(accountData);
-          
+
           // Atualizar o input hidden com os dados das contas
           savedBookmakerAccountsData.value = JSON.stringify(savedAccounts);
-          
+
           // Mostrar a seção de contas salvas
           savedAccountsSection.style.display = 'block';
-          
+
           // Adicionar card visual para a conta
           addAccountCard(accountData);
-          
+
           // Limpar formulário
           ownerSelect.selectedIndex = 0;
           accountStatus.selectedIndex = 0;
@@ -679,19 +676,11 @@
           accountPassword.value = '';
           accountSelectedCountries.innerHTML = '';
           accountSelectedCountriesArray.length = 0;
-          
+
           // Esconder seção de detalhes da conta
           accountDetailsSection.style.display = 'none';
-          
+
           alert('Account details saved!');
-        });
-      }
-      
-      // Evento para o botão Add More Account
-      if (addMoreAccountButton) {
-        addMoreAccountButton.addEventListener('click', function() {
-          // Mostrar seção de detalhes da conta para adicionar outra
-          accountDetailsSection.style.display = 'block';
         });
       }
     });
