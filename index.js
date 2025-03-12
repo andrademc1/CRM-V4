@@ -355,7 +355,7 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
               account.city,
               account.state,
               account.zipCode,
-              account.country ? account.country : account.countryCode
+              account.country
             ]
           );
           console.log('Conta inserida com sucesso');
