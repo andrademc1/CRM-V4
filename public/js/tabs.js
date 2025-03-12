@@ -58,37 +58,6 @@ document.addEventListener('DOMContentLoaded', function() {
       billingDetailsSection.style.display = 'block';
     });
   }
-  
-  // Botões para gerenciar billing details
-  const saveBillingButton = document.getElementById('saveBillingButton');
-  const addMoreAccountButton = document.getElementById('addMoreAccountButton');
-  
-  if (saveBillingButton) {
-    saveBillingButton.addEventListener('click', function() {
-      // Salvar os detalhes atuais (poderia ser feito via AJAX em uma implementação completa)
-      alert('Billing details saved successfully!');
-      
-      // Aqui você poderia adicionar código para armazenar os dados temporariamente
-      // Por exemplo, em um array de contas ou em localStorage
-    });
-  }
-  
-  if (addMoreAccountButton) {
-    addMoreAccountButton.addEventListener('click', function() {
-      // Limpar os campos do formulário para adicionar uma nova conta
-      document.getElementById('billingName').value = '';
-      document.getElementById('billingVat').value = '';
-      document.getElementById('billingAddress1').value = '';
-      document.getElementById('billingAddress2').value = '';
-      document.getElementById('billingCity').value = '';
-      document.getElementById('billingState').value = '';
-      document.getElementById('billingZipCode').value = '';
-      document.getElementById('countryCode').value = '';
-      document.getElementById('selectedCountry').textContent = 'Select a country';
-      
-      alert('Form cleared. You can now add another account.');
-    });
-  }
 
   // Inicializar o seletor de países
   const countrySearchInput = document.getElementById('countrySearch');

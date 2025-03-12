@@ -146,26 +146,6 @@
   padding: 8px 16px;
 }
 
-.billing-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.billing-actions .btn {
-  flex: 1;
-}
-
-.btn-success {
-  background-color: #28a745;
-  color: white;
-}
-
-.btn-info {
-  background-color: #17a2b8;
-  color: white;
-}
-
 #billingDetailsSection h4 {
   margin-top: 0;
   margin-bottom: 15px;
