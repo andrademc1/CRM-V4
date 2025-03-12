@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Adicionar Grupo - CRM</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/tabs.css">
 </head>
 <body>
   <div class="dashboard-container">
@@ -42,24 +43,45 @@
         <% } %>
 
         <div class="form-container">
-          <form action="/bookmakers/adicionar-grupo" method="POST">
-            <div class="form-group">
-              <label for="nome">Nome:</label>
-              <input type="text" id="nome" name="nome" required>
-            </div>
+          <!-- Tab links -->
+          <div class="tab">
+            <button class="tab-link active" data-tab="groupSettings">Group Settings</button>
+          </div>
 
-            <div class="form-group">
-              <label for="descricao">Descrição:</label>
-              <textarea id="descricao" name="descricao" rows="4"></textarea>
-            </div>
+          <form action="/bookmakers/adicionar-grupo" method="POST" enctype="multipart/form-data">
+            <!-- Tab content -->
+            <div id="groupSettings" class="tab-content" style="display:block;">
+              <div class="form-group">
+                <label for="status">Group Status:</label>
+                <select id="status" name="status">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
 
-            <div class="form-group">
-              <label for="status">Status:</label>
-              <select id="status" name="status">
-                <option value="active">Ativo</option>
-                <option value="inactive">Inativo</option>
-                <option value="suspended">Suspenso</option>
-              </select>
+              <div class="form-group">
+                <label for="nome">Group Name:</label>
+                <input type="text" id="nome" name="nome" required>
+              </div>
+
+              <div class="form-group">
+                <label for="groupLogo">Group Logo:</label>
+                <input type="file" id="groupLogo" name="groupLogo" accept="image/*">
+                <div class="logo-preview-container">
+                  <img id="logoPreview" class="logo-preview" src="#" alt="Logo Preview">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="groupUrl">Group URL:</label>
+                <input type="url" id="groupUrl" name="groupUrl">
+              </div>
+
+              <div class="form-group">
+                <label for="groupAffiliateUrl">Group Affiliate URL:</label>
+                <input type="url" id="groupAffiliateUrl" name="groupAffiliateUrl">
+              </div>
             </div>
 
             <div class="form-actions">
@@ -71,5 +93,58 @@
       </main>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Preview da imagem do logo
+      const logoInput = document.getElementById('groupLogo');
+      const logoPreview = document.getElementById('logoPreview');
+      
+      if (logoInput) {
+        logoInput.addEventListener('change', function() {
+          const file = this.files[0];
+          const preview = document.getElementById('logoPreview');
+
+          if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+              preview.src = e.target.result;
+              preview.style.display = 'block';
+            };
+
+            reader.readAsDataURL(file);
+          } else {
+            preview.src = '';
+            preview.style.display = 'none';
+          }
+        });
+      }
+
+      // Função para gerenciar abas
+      function openTab(tabName) {
+        const tabContents = document.getElementsByClassName('tab-content');
+        for (let i = 0; i < tabContents.length; i++) {
+          tabContents[i].style.display = 'none';
+        }
+
+        const tabLinks = document.getElementsByClassName('tab-link');
+        for (let i = 0; i < tabLinks.length; i++) {
+          tabLinks[i].classList.remove('active');
+        }
+
+        document.getElementById(tabName).style.display = 'block';
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+      }
+
+      // Adicionar event listeners para as abas
+      const tabLinks = document.getElementsByClassName('tab-link');
+      for (let i = 0; i < tabLinks.length; i++) {
+        tabLinks[i].addEventListener('click', function() {
+          openTab(this.getAttribute('data-tab'));
+        });
+      }
+    });
+  </script>
 </body>
 </html>

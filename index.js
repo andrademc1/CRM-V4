@@ -418,8 +418,8 @@ app.get('/bookmakers/adicionar-grupo', requireLogin, (req, res) => {
 });
 
 // Rota para processar adição de grupo
-app.post('/bookmakers/adicionar-grupo', requireLogin, async (req, res) => {
-  const { nome, descricao, status } = req.body;
+app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo'), async (req, res) => {
+  const { nome, status, groupUrl, groupAffiliateUrl } = req.body;
   
   if (!nome || nome.trim() === '') {
     return res.render('adicionar-grupo', { 
@@ -431,10 +431,44 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, async (req, res) => {
   try {
     const client = await getDbClient();
     
+    // Processar upload de logo
+    let logoUrl = '';
+    if (req.file) {
+      logoUrl = `/uploads/${req.file.filename}`;
+      console.log('Logo URL:', logoUrl);
+    }
+    
+    // Verificar se a tabela groups tem as colunas necessárias
+    try {
+      const columnCheck = await client.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'groups' AND column_name IN ('logo_url', 'group_url', 'affiliate_url')
+      `);
+      
+      // Se alguma coluna estiver faltando, adicioná-la
+      const existingColumns = columnCheck.rows.map(row => row.column_name);
+      
+      if (!existingColumns.includes('logo_url')) {
+        await client.query(`ALTER TABLE groups ADD COLUMN logo_url TEXT`);
+      }
+      
+      if (!existingColumns.includes('group_url')) {
+        await client.query(`ALTER TABLE groups ADD COLUMN group_url TEXT`);
+      }
+      
+      if (!existingColumns.includes('affiliate_url')) {
+        await client.query(`ALTER TABLE groups ADD COLUMN affiliate_url TEXT`);
+      }
+    } catch (err) {
+      console.error('Erro ao verificar/adicionar colunas à tabela groups:', err);
+    }
+    
     // Inserir novo grupo
     await client.query(
-      'INSERT INTO groups (nome, descricao, status) VALUES ($1, $2, $3)',
-      [nome, descricao, status || 'active']
+      `INSERT INTO groups (nome, status, logo_url, group_url, affiliate_url) 
+       VALUES ($1, $2, $3, $4, $5)`,
+      [nome, status || 'active', logoUrl, groupUrl || '', groupAffiliateUrl || '']
     );
     
     await client.end();
