@@ -46,6 +46,7 @@
           <!-- Tab links -->
           <div class="tab">
             <button class="tab-link active" data-tab="groupSettings">Group Settings</button>
+            <button class="tab-link" data-tab="groupAccountSettings">Group Account Settings</button>
           </div>
 
           <form action="/bookmakers/adicionar-grupo" method="POST" enctype="multipart/form-data">
@@ -82,6 +83,73 @@
                 <label for="groupAffiliateUrl">Group Affiliate URL:</label>
                 <input type="url" id="groupAffiliateUrl" name="groupAffiliateUrl">
               </div>
+            </div>
+
+            <!-- Tab content for Group Account Settings -->
+            <div id="groupAccountSettings" class="tab-content">
+              <div class="form-group">
+                <label>Apply Account Settings by Group?</label>
+                <div class="radio-group">
+                  <div class="radio-option">
+                    <input type="radio" id="applyAccountYes" name="applyAccount" value="yes">
+                    <label for="applyAccountYes">Yes</label>
+                  </div>
+                  <div class="radio-option">
+                    <input type="radio" id="applyAccountNo" name="applyAccount" value="no" checked>
+                    <label for="applyAccountNo">No</label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botão para adicionar conta -->
+              <div id="addAccountButtonSection" style="display: none;">
+                <button type="button" id="addAccountButton" class="btn btn-success">Add Account</button>
+              </div>
+
+              <!-- Seção de detalhes da conta -->
+              <div id="accountDetailsSection" style="display: none;">
+                <h4>Account Details</h4>
+                
+                <div class="form-group">
+                  <label for="ownerSelect">Owner:</label>
+                  <select id="ownerSelect" name="ownerSelect">
+                    <option value="">Select an Owner</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="accountStatus">Account Status:</label>
+                  <select id="accountStatus" name="accountStatus">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="accountUsername">Username/Email:</label>
+                  <input type="text" id="accountUsername" name="accountUsername">
+                </div>
+
+                <div class="form-group">
+                  <label for="accountPassword">Password:</label>
+                  <input type="password" id="accountPassword" name="accountPassword">
+                </div>
+
+                <div class="form-actions billing-actions">
+                  <button type="button" id="saveAccountButton" class="btn btn-success">Save Account</button>
+                </div>
+              </div>
+
+              <!-- Seção para exibir as contas salvas -->
+              <div id="savedAccountsSection" class="saved-accounts-section">
+                <h4>Saved Accounts</h4>
+                <div id="accountsList" class="accounts-list"></div>
+                <button type="button" id="addMoreAccountButton" class="btn btn-info">Add Another Account</button>
+              </div>
+
+              <!-- Input hidden para armazenar os dados das contas em formato JSON -->
+              <input type="hidden" id="savedAccountsData" name="savedAccountsData">
             </div>
 
             <div class="form-actions">
@@ -142,6 +210,158 @@
       for (let i = 0; i < tabLinks.length; i++) {
         tabLinks[i].addEventListener('click', function() {
           openTab(this.getAttribute('data-tab'));
+        });
+      }
+
+      // Gerenciar Group Account Settings
+      const accountRadios = document.querySelectorAll('input[name="applyAccount"]');
+      const addAccountButtonSection = document.getElementById('addAccountButtonSection');
+      const accountDetailsSection = document.getElementById('accountDetailsSection');
+      const savedAccountsSection = document.getElementById('savedAccountsSection');
+      const addAccountButton = document.getElementById('addAccountButton');
+      const addMoreAccountButton = document.getElementById('addMoreAccountButton');
+      const saveAccountButton = document.getElementById('saveAccountButton');
+      const accountsList = document.getElementById('accountsList');
+      const savedAccountsData = document.getElementById('savedAccountsData');
+      
+      // Array para armazenar as contas salvas
+      const savedAccounts = [];
+
+      // Função para adicionar card da conta
+      function addAccountCard(account) {
+        const card = document.createElement('div');
+        card.className = 'account-card';
+        
+        let cardContent = `
+          <h5>${account.owner}</h5>
+          <p><strong>Status:</strong> ${account.status}</p>
+          <p><strong>Username:</strong> ${account.username}</p>
+          <p><strong>Password:</strong> ${account.password.replace(/./g, '*')}</p>
+        `;
+        
+        card.innerHTML = cardContent;
+        accountsList.appendChild(card);
+      }
+
+      // Event listeners para os radio buttons
+      if (accountRadios.length > 0) {
+        accountRadios.forEach(radio => {
+          radio.addEventListener('change', function() {
+            if (this.value === 'yes') {
+              addAccountButtonSection.style.display = 'block';
+              
+              // Carregar os owners do servidor
+              fetch('/api/owners')
+                .then(response => response.json())
+                .then(owners => {
+                  const ownerSelect = document.getElementById('ownerSelect');
+                  // Limpar opções existentes
+                  ownerSelect.innerHTML = '<option value="">Select an Owner</option>';
+                  
+                  // Adicionar owners ao dropdown
+                  owners.forEach(owner => {
+                    const option = document.createElement('option');
+                    option.value = owner.id;
+                    option.textContent = owner.nome;
+                    ownerSelect.appendChild(option);
+                  });
+                })
+                .catch(error => {
+                  console.error('Erro ao carregar owners:', error);
+                  // Adicionar alguns owners fictícios para demonstração em caso de erro
+                  const ownerSelect = document.getElementById('ownerSelect');
+                  ownerSelect.innerHTML = `
+                    <option value="">Select an Owner</option>
+                    <option value="1">Owner 1</option>
+                    <option value="2">Owner 2</option>
+                    <option value="3">Owner 3</option>
+                  `;
+                });
+            } else {
+              // Se selecionar "No", esconder todas as seções relacionadas
+              addAccountButtonSection.style.display = 'none';
+              accountDetailsSection.style.display = 'none';
+              savedAccountsSection.style.display = 'none';
+              
+              // Limpar as contas salvas
+              savedAccounts.length = 0;
+              accountsList.innerHTML = '';
+              savedAccountsData.value = '';
+            }
+          });
+        });
+      }
+
+      // Event listener para o botão Add Account
+      if (addAccountButton) {
+        addAccountButton.addEventListener('click', function() {
+          accountDetailsSection.style.display = 'block';
+        });
+      }
+
+      // Event listener para o botão Save Account
+      if (saveAccountButton) {
+        saveAccountButton.addEventListener('click', function() {
+          const ownerSelect = document.getElementById('ownerSelect');
+          const accountStatus = document.getElementById('accountStatus');
+          const accountUsername = document.getElementById('accountUsername');
+          const accountPassword = document.getElementById('accountPassword');
+          
+          // Validar campos obrigatórios
+          if (!ownerSelect.value) {
+            alert('Please select an owner');
+            return;
+          }
+          
+          if (!accountUsername.value) {
+            alert('Please enter a username/email');
+            return;
+          }
+          
+          if (!accountPassword.value) {
+            alert('Please enter a password');
+            return;
+          }
+          
+          // Criar objeto da conta
+          const accountData = {
+            ownerId: ownerSelect.value,
+            owner: ownerSelect.options[ownerSelect.selectedIndex].text,
+            status: accountStatus.value,
+            username: accountUsername.value,
+            password: accountPassword.value
+          };
+          
+          // Adicionar ao array de contas
+          savedAccounts.push(accountData);
+          
+          // Atualizar o input hidden com os dados das contas
+          savedAccountsData.value = JSON.stringify(savedAccounts);
+          
+          // Mostrar a seção de contas salvas
+          savedAccountsSection.style.display = 'block';
+          
+          // Adicionar card visual para a conta
+          addAccountCard(accountData);
+          
+          // Limpar formulário
+          ownerSelect.selectedIndex = 0;
+          accountStatus.selectedIndex = 0;
+          accountUsername.value = '';
+          accountPassword.value = '';
+          
+          // Esconder seção de detalhes da conta
+          accountDetailsSection.style.display = 'none';
+          
+          alert('Account details saved!');
+        });
+      }
+      
+      // Event listener para o botão Add More Account
+      if (addMoreAccountButton) {
+        addMoreAccountButton.addEventListener('click', function() {
+          // Mostrar seção de detalhes da conta para adicionar outra
+          accountDetailsSection.style.display = 'block';
         });
       }
     });

@@ -419,7 +419,16 @@ app.get('/bookmakers/adicionar-grupo', requireLogin, (req, res) => {
 
 // Rota para processar adição de grupo
 app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo'), async (req, res) => {
-  const { nome, status, groupUrl, groupAffiliateUrl } = req.body;
+  const { 
+    nome, 
+    status, 
+    groupUrl, 
+    groupAffiliateUrl, 
+    applyAccount,
+    savedAccountsData
+  } = req.body;
+  
+  console.log('Dados do formulário:', req.body);
   
   if (!nome || nome.trim() === '') {
     return res.render('adicionar-grupo', { 
@@ -465,11 +474,66 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
     }
     
     // Inserir novo grupo
-    await client.query(
+    const groupResult = await client.query(
       `INSERT INTO groups (nome, status, logo_url, group_url, affiliate_url) 
-       VALUES ($1, $2, $3, $4, $5)`,
+       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
       [nome, status || 'active', logoUrl, groupUrl || '', groupAffiliateUrl || '']
     );
+    
+    const groupId = groupResult.rows[0].id;
+    
+    // Verificar se o usuário selecionou "yes" para Apply Account
+    if (applyAccount === 'yes' && savedAccountsData) {
+      try {
+        // Verificar se a tabela group_accounts existe
+        const tableCheck = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'group_accounts'
+          );
+        `);
+        
+        const tableExists = tableCheck.rows[0].exists;
+        
+        // Criar tabela de contas de grupo se não existir
+        if (!tableExists) {
+          await client.query(`
+            CREATE TABLE group_accounts (
+              id SERIAL PRIMARY KEY,
+              group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+              owner_id INTEGER REFERENCES owners(id),
+              status VARCHAR(20) DEFAULT 'active',
+              username VARCHAR(100) NOT NULL,
+              password VARCHAR(100) NOT NULL,
+              data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+          console.log('Tabela group_accounts criada.');
+        }
+        
+        console.log('Processando contas do grupo:', savedAccountsData);
+        const accounts = JSON.parse(savedAccountsData);
+        
+        // Inserir contas na tabela group_accounts
+        for (const account of accounts) {
+          await client.query(
+            `INSERT INTO group_accounts (
+              group_id, owner_id, status, username, password
+            ) VALUES ($1, $2, $3, $4, $5)`,
+            [
+              groupId,
+              account.ownerId,
+              account.status,
+              account.username,
+              account.password
+            ]
+          );
+          console.log('Conta do grupo inserida com sucesso');
+        }
+      } catch (e) {
+        console.error('Erro ao processar contas do grupo:', e, e.stack);
+      }
+    }
     
     await client.end();
     
@@ -540,6 +604,22 @@ app.get('/users', requireLogin, async (req, res) => {
     });
   }
 });
+
+// Rota API para obter owners
+app.get('/api/owners', requireLogin, async (req, res) => {
+  try {
+    const client = await getDbClient();
+    const result = await client.query('SELECT id, nome FROM owners ORDER BY nome');
+    await client.end();
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao obter owners:', err);
+    res.status(500).json({ erro: 'Erro ao obter owners' });
+  }
+});
+
+
 
 // Rota para formulário de adicionar usuário
 app.get('/users/adicionar', requireLogin, (req, res) => {
