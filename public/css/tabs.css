@@ -39,68 +39,57 @@
 /* Estilos para o seletor de países */
 .country-selector {
   position: relative;
-  width: 100%;
+  margin-bottom: 15px;
 }
 
-.selected-country {
-  padding: 8px 12px;
+.country-display {
+  padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  background-color: #fff;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-}
-
-.selected-country::after {
-  content: "▼";
-  font-size: 12px;
-  margin-left: 10px;
+  cursor: pointer;
+  background-color: white;
 }
 
 .country-search {
-  width: 100%;
-  padding: 8px 12px;
   margin-top: 5px;
+}
+
+.country-search input {
+  width: 100%;
+  padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
 
 .country-list {
+  display: none;
   position: absolute;
   width: 100%;
   max-height: 200px;
   overflow-y: auto;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: #fff;
-  z-index: 100;
-  display: none;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  background-color: white;
+  z-index: 10;
 }
 
 .country-list li {
-  padding: 8px 12px;
-  border-bottom: 1px solid #eee;
+  padding: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
 }
 
-.country-list li:last-child {
-  border-bottom: none;
-}
-
 .country-list li:hover {
-  background-color: #f5f5f5;
+  background-color: #f5f7fa;
 }
 
 .country-flag {
   margin-right: 8px;
-  font-size: 16px;
+  font-size: 1.2em;
 }
 
 /* Estilos para upload e preview de imagem */
@@ -184,11 +173,10 @@
 }
 
 .billing-account-card {
-  background-color: #fff;
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: 5px;
   padding: 15px;
-  margin-bottom: 15px;
+  background-color: #f9f9f9;
   width: 300px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -262,8 +250,4 @@
   margin-top: 0;
   margin-bottom: 15px;
   color: #333;
-}
-
-#addMoreBillingButton {
-  margin-top: 15px;
 }
