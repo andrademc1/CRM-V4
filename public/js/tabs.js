@@ -146,45 +146,50 @@ document.addEventListener('DOMContentLoaded', function() {
   if (saveBillingButton) {
     saveBillingButton.addEventListener('click', function() {
       // Obter valores do formulário
-      const billingName = document.getElementById('billingName').value;
-      const billingVat = document.getElementById('billingVat').value;
-      const billingAddress1 = document.getElementById('billingAddress1').value;
-      const billingAddress2 = document.getElementById('billingAddress2').value;
-      const billingCity = document.getElementById('billingCity').value;
-      const billingState = document.getElementById('billingState').value;
-      const billingZipCode = document.getElementById('billingZipCode').value;
+      const name = document.getElementById('billingName').value;
+      const vat = document.getElementById('billingVat').value;
+      const address1 = document.getElementById('billingAddress1').value;
+      const address2 = document.getElementById('billingAddress2').value;
+      const city = document.getElementById('billingCity').value;
+      const state = document.getElementById('billingState').value;
+      const zipCode = document.getElementById('billingZipCode').value;
+      const countryElement = document.getElementById('selectedCountry');
+      const country = countryElement ? countryElement.textContent : '';
       const countryCode = document.getElementById('countryCode').value;
-      const selectedCountry = document.getElementById('selectedCountry').textContent;
 
-      // Validar se pelo menos o nome foi preenchido
-      if (!billingName) {
-        alert('Please enter at least the billing name.');
+      // Validar campos obrigatórios
+      if (!name) {
+        alert('Please enter a billing name');
         return;
       }
 
-      // Criar objeto com os dados da conta
+      // Criar objeto de conta
       const accountData = {
-        name: billingName,
-        vat: billingVat,
-        address1: billingAddress1,
-        address2: billingAddress2,
-        city: billingCity,
-        state: billingState,
-        zipCode: billingZipCode,
-        countryCode: countryCode,
-        country: selectedCountry !== 'Select a country' ? selectedCountry : ''
+        name,
+        vat,
+        address1,
+        address2,
+        city,
+        state,
+        zipCode,
+        country,
+        countryCode
       };
 
       // Adicionar ao array de contas
       savedAccounts.push(accountData);
 
-      // Criar e adicionar cartão visual para a conta
-      createAccountCard(accountData);
+      // Mostrar a seção de contas salvas
+      if (savedBillingAccounts) {
+        savedBillingAccounts.style.display = 'block';
+      }
 
-      // Mostrar seção de contas salvas
-      savedBillingAccounts.style.display = 'block';
+      // Adicionar card visual para a conta
+      if (billingAccountsList) {
+        addAccountCard(accountData);
+      }
 
-      // Limpar campos para possível nova entrada
+      // Limpar o formulário
       clearBillingForm();
 
       alert('Billing details saved successfully!');
@@ -193,37 +198,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (addMoreAccountButton) {
     addMoreAccountButton.addEventListener('click', function() {
+      // Limpar os campos do formulário para adicionar uma nova conta
       clearBillingForm();
       alert('Form cleared. You can now add another account.');
     });
   }
 
-  // Função para criar cartão visual de conta
-  function createAccountCard(accountData) {
+  // Função para adicionar um card visual para a conta
+  function addAccountCard(accountData) {
     const card = document.createElement('div');
-    card.className = 'account-card';
+    card.className = 'billing-account-card';
 
-    // Criar cabeçalho com nome da conta
+    // Adicionar nome e VAT
+    const header = document.createElement('div');
+    header.className = 'card-header';
+
     const title = document.createElement('h5');
     title.textContent = accountData.name;
-    card.appendChild(title);
+    header.appendChild(title);
 
-    // Adicionar VAT se existir
     if (accountData.vat) {
-      const vat = document.createElement('p');
-      vat.innerHTML = '<strong>VAT:</strong> ' + accountData.vat;
-      card.appendChild(vat);
+      const vatInfo = document.createElement('p');
+      vatInfo.textContent = `VAT: ${accountData.vat}`;
+      header.appendChild(vatInfo);
     }
 
-    // Adicionar seção de endereço
-    const addressSection = document.createElement('div');
-    addressSection.className = 'account-address';
+    card.appendChild(header);
 
-    // Montar endereço completo
+    // Adicionar endereço
+    const addressSection = document.createElement('div');
+    addressSection.className = 'card-address';
+
     let addressHTML = '';
+
     if (accountData.address1) {
       addressHTML += '<p>' + accountData.address1 + '</p>';
     }
+
     if (accountData.address2) {
       addressHTML += '<p>' + accountData.address2 + '</p>';
     }

@@ -193,12 +193,22 @@ app.get('/dashboard', requireLogin, async (req, res) => {
 app.get('/bookmakers', requireLogin, async (req, res) => {
   try {
     const client = await getDbClient();
-    const result = await client.query('SELECT * FROM owners ORDER BY nome');
+    const ownersResult = await client.query('SELECT * FROM owners ORDER BY nome');
+    
+    // Para cada owner, recuperar suas contas de faturamento
+    for (const owner of ownersResult.rows) {
+      const billingAccountsResult = await client.query(
+        'SELECT * FROM owner_billing_accounts WHERE owner_id = $1 ORDER BY id',
+        [owner.id]
+      );
+      owner.billingAccounts = billingAccountsResult.rows;
+    }
+    
     await client.end();
     
     res.render('bookmakers', { 
       usuario: req.session.usuarioLogado,
-      owners: result.rows,
+      owners: ownersResult.rows,
       mensagem: req.session.mensagem
     });
     // Limpar mensagem da sessão após exibir
@@ -297,17 +307,14 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
     if (billingAccounts) {
       try {
         const accounts = JSON.parse(billingAccounts);
+        console.log(`Recebidos ${accounts.length} billing accounts adicionais`);
         
-        // Aqui você poderia inserir essas contas adicionais em uma tabela separada
-        // Para este exemplo, vamos apenas logar que elas foram recebidas
-        console.log(`Received ${accounts.length} additional billing accounts`);
-        
-        // Exemplo de como inserir em uma tabela (se você criar uma no futuro):
-        /*
+        // Inserir as contas adicionais na tabela owner_billing_accounts
         for (const account of accounts) {
           await client.query(
             `INSERT INTO owner_billing_accounts (
-              owner_id, name, vat, address1, address2, city, state, zipcode, country
+              owner_id, billing_name, billing_vat, billing_address1, billing_address2, 
+              billing_city, billing_state, billing_zipcode, billing_country
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
             [
               ownerResult.rows[0].id,
@@ -318,11 +325,10 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
               account.city,
               account.state,
               account.zipCode,
-              account.countryCode
+              account.country
             ]
           );
         }
-        */
       } catch (e) {
         console.error('Erro ao processar contas adicionais:', e);
       }

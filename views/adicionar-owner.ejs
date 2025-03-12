@@ -144,16 +144,13 @@
                 </div>
                 <div class="billing-actions">
                   <button type="button" id="saveBillingButton" class="btn btn-success">Save Billing Details</button>
-                  <!-- Add Another Account button remains -->
                   <button type="button" id="addMoreAccountButton" class="btn btn-info">Add Another Account</button>
                 </div>
               </div>
 
-              <div id="savedBillingAccounts" class="saved-accounts-section">
+              <div id="savedBillingAccounts" style="display: none; margin-top: 30px;">
                 <h4>Saved Billing Accounts</h4>
-                <div id="billingAccountsList" class="accounts-list">
-                  <!--  JavaScript will add saved billing account cards here -->
-                </div>
+                <div id="billingAccountsList" class="billing-accounts-container"></div>
               </div>
             </div>
 
@@ -169,18 +166,32 @@
 
   <script src="/js/countries.js"></script>
   <script src="/js/tabs.js"></script>
-  <!-- Add JavaScript to handle saving and displaying billing details -->
   <script>
-    // JavaScript code to handle saving billing details and updating the "savedBillingAccounts" section
     document.getElementById('saveBillingButton').addEventListener('click', function() {
-      // Implement AJAX call to save billing details to the server
-      // Upon successful save, update the #billingAccountsList with the new details.
-      // Example using alert to replace actual saving logic
-        alert("Billing details saved!");
+      // Placeholder: Replace with actual AJAX call to save billing details
+      const billingDetails = {
+        name: document.getElementById('billingName').value,
+        vat: document.getElementById('billingVat').value,
+        // ... other billing details
+      };
+
+      // Simulate saving and adding to the list
+      addBillingAccountToList(billingDetails);
+      document.getElementById('savedBillingAccounts').style.display = 'block';
+      alert("Billing details saved!");
     });
 
-    // Add additional JavaScript functions to handle adding more accounts and dynamically updating the UI.
-
+    function addBillingAccountToList(billingDetails) {
+      const billingAccountsList = document.getElementById('billingAccountsList');
+      const newAccountCard = document.createElement('div');
+      newAccountCard.classList.add('billing-account-card');
+      newAccountCard.innerHTML = `
+        <h3>${billingDetails.name}</h3>
+        <p>VAT: ${billingDetails.vat}</p>
+        <!-- Add other billing details here -->
+      `;
+      billingAccountsList.appendChild(newAccountCard);
+    }
   </script>
 </body>
 </html>

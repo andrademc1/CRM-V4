@@ -18,6 +18,7 @@ async function resetDatabase() {
     // Remover tabelas existentes
     await client.query('DROP TABLE IF EXISTS usuarios CASCADE');
     await client.query('DROP TABLE IF EXISTS clientes CASCADE');
+    await client.query('DROP TABLE IF EXISTS owner_billing_accounts CASCADE');
     await client.query('DROP TABLE IF EXISTS owners CASCADE');
     
     console.log('Tabelas removidas com sucesso.');
@@ -52,6 +53,22 @@ async function resetDatabase() {
         status VARCHAR(20) DEFAULT 'active',
         logo_url TEXT,
         apply_billing BOOLEAN DEFAULT false,
+        billing_name VARCHAR(100),
+        billing_vat VARCHAR(50),
+        billing_address1 VARCHAR(200),
+        billing_address2 VARCHAR(200),
+        billing_city VARCHAR(100),
+        billing_state VARCHAR(100),
+        billing_zipcode VARCHAR(20),
+        billing_country VARCHAR(5),
+        data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS owner_billing_accounts (
+        id SERIAL PRIMARY KEY,
+        owner_id INTEGER REFERENCES owners(id) ON DELETE CASCADE,
         billing_name VARCHAR(100),
         billing_vat VARCHAR(50),
         billing_address1 VARCHAR(200),
