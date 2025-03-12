@@ -214,10 +214,27 @@ app.get('/bookmakers', requireLogin, async (req, res) => {
     
     await client.end();
     
+    // Importar o array de países para usar na renderização
+    const countriesPath = path.join(__dirname, 'public', 'js', 'countries.js');
+    let countries = [];
+    try {
+      // Tentar ler o array de países do arquivo
+      const fs = require('fs');
+      const content = fs.readFileSync(countriesPath, 'utf8');
+      // Extrair apenas o array de países do arquivo
+      const match = content.match(/window\.countries\s*=\s*(\[[\s\S]*?\]);/);
+      if (match && match[1]) {
+        countries = eval(match[1]); // Avaliação segura pois estamos lendo nosso próprio arquivo
+      }
+    } catch (err) {
+      console.error('Erro ao ler arquivo de países:', err);
+    }
+    
     res.render('bookmakers', { 
       usuario: req.session.usuarioLogado,
       owners: ownersResult.rows,
-      mensagem: req.session.mensagem
+      mensagem: req.session.mensagem,
+      countries: countries
     });
     // Limpar mensagem da sessão após exibir
     req.session.mensagem = null;

@@ -410,3 +410,20 @@ ul {
 .btn-delete:hover {
   background-color: #c82333;
 }
+
+.billing-account {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.country-with-flag {
+  display: flex;
+  align-items: center;
+}
+
+.country-flag {
+  font-size: 1.2em;
+  margin-right: 5px;
+}
