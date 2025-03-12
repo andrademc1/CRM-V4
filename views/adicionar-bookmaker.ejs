@@ -114,6 +114,13 @@
                 <h4>Account Details</h4>
                 
                 <div class="form-group">
+                  <div class="autofill-option">
+                    <label>Preencher automaticamente com dados do grupo:</label>
+                    <button type="button" id="autoFillFromGroup" class="btn btn-sm btn-info">Auto-preencher</button>
+                  </div>
+                </div>
+                
+                <div class="form-group">
                   <label for="ownerSelect">Owner:</label>
                   <select id="ownerSelect" name="ownerSelect">
                     <option value="">Select an Owner</option>
@@ -372,6 +379,7 @@
       const addMoreAccountButton = document.getElementById('addMoreAccountButton');
       const accountsList = document.getElementById('accountsList');
       const savedBookmakerAccountsData = document.getElementById('savedBookmakerAccountsData');
+      const autoFillFromGroupButton = document.getElementById('autoFillFromGroup');
       
       // Array para armazenar as contas salvas
       const savedAccounts = [];
@@ -549,6 +557,72 @@
         
         accountCountrySearch.addEventListener('focus', function() {
           accountCountryList.style.display = 'block';
+        });
+      }
+      
+      // Evento para o botão de preenchimento automático
+      if (autoFillFromGroupButton) {
+        autoFillFromGroupButton.addEventListener('click', async function() {
+          const groupId = document.getElementById('groupId').value;
+          
+          if (!groupId) {
+            alert('Por favor, selecione um grupo na aba Bookmaker Settings primeiro');
+            return;
+          }
+          
+          try {
+            // Buscar dados do grupo no servidor
+            const response = await fetch(`/api/groups/${groupId}/accounts`);
+            if (!response.ok) {
+              throw new Error('Falha ao obter os dados do grupo');
+            }
+            
+            const data = await response.json();
+            
+            if (data && data.account) {
+              // Preencher os campos com os dados recebidos
+              const account = data.account;
+              
+              // Selecionar o owner correspondente, se disponível
+              if (account.owner_id) {
+                const ownerSelect = document.getElementById('ownerSelect');
+                for (let i = 0; i < ownerSelect.options.length; i++) {
+                  if (ownerSelect.options[i].value == account.owner_id) {
+                    ownerSelect.selectedIndex = i;
+                    break;
+                  }
+                }
+              }
+              
+              // Definir o status da conta
+              if (account.status) {
+                const accountStatus = document.getElementById('accountStatus');
+                const statusValue = account.status.toLowerCase();
+                for (let i = 0; i < accountStatus.options.length; i++) {
+                  if (accountStatus.options[i].value === statusValue) {
+                    accountStatus.selectedIndex = i;
+                    break;
+                  }
+                }
+              }
+              
+              // Preencher username e password
+              if (account.username) {
+                document.getElementById('accountUsername').value = account.username;
+              }
+              
+              if (account.password) {
+                document.getElementById('accountPassword').value = account.password;
+              }
+              
+              alert('Dados preenchidos automaticamente!');
+            } else {
+              alert('Não foram encontradas contas associadas a este grupo');
+            }
+          } catch (error) {
+            console.error('Erro ao obter dados do grupo:', error);
+            alert('Erro ao buscar dados do grupo: ' + error.message);
+          }
         });
       }
       

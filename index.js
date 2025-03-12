@@ -898,6 +898,51 @@ app.get('/api/owners', requireLogin, async (req, res) => {
   }
 });
 
+// Rota API para obter contas associadas a um grupo
+app.get('/api/groups/:id/accounts', requireLogin, async (req, res) => {
+  const groupId = req.params.id;
+  
+  try {
+    const client = await getDbClient();
+    
+    // Verificar se a tabela group_accounts existe
+    const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'group_accounts'
+      );
+    `);
+    
+    const tableExists = tableCheck.rows[0].exists;
+    
+    if (!tableExists) {
+      await client.end();
+      return res.json({ account: null });
+    }
+    
+    // Buscar a primeira conta associada ao grupo
+    const result = await client.query(`
+      SELECT ga.*, o.nome as owner_name
+      FROM group_accounts ga
+      LEFT JOIN owners o ON ga.owner_id = o.id
+      WHERE ga.group_id = $1
+      ORDER BY ga.id
+      LIMIT 1
+    `, [groupId]);
+    
+    await client.end();
+    
+    if (result.rows.length > 0) {
+      res.json({ account: result.rows[0] });
+    } else {
+      res.json({ account: null });
+    }
+  } catch (err) {
+    console.error('Erro ao obter contas do grupo:', err);
+    res.status(500).json({ erro: 'Erro ao obter contas do grupo' });
+  }
+});
+
 
 
 // Rota para formulário de adicionar usuário

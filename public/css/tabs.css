@@ -340,3 +340,26 @@
   margin-bottom: 15px;
   color: #333;
 }
+
+.tab-content .form-actions button {
+  margin-right: 10px;
+}
+
+.autofill-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+.autofill-option label {
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+.autofill-option button {
+  margin-left: 10px;
+}
