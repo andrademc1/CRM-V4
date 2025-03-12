@@ -153,8 +153,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Gerenciar a visibilidade dos campos de detalhes de faturação
   const billingRadios = document.querySelectorAll('input[name="applyBilling"]');
   const billingDetailsSection = document.getElementById('billingDetailsSection');
-  const addAccountButtonSection = document.getElementById('addAccountButtonSection');
-  const addAccountButton = document.getElementById('addAccountButton');
+  const addAccountButtonSection = document.getElementById('addBillingDetailsButtonSection');
+  const addAccountButton = document.getElementById('addBillingDetailsButton');
 
   if (billingRadios.length > 0) {
     billingRadios.forEach(radio => {
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Adicionar evento ao botão Add Account
+  // Adicionar evento ao botão Add Billing Details
   if (addAccountButton) {
     addAccountButton.addEventListener('click', function() {
       billingDetailsSection.style.display = 'block';

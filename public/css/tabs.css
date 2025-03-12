@@ -127,7 +127,7 @@
 }
 
 /* Estilos para a seção de detalhes de faturação */
-#billingDetailsSection, #addAccountButtonSection {
+#billingDetailsSection, #addBillingDetailsButtonSection {
   display: none;
 }
 
@@ -139,7 +139,7 @@
   background-color: #f8f9fa;
 }
 
-#addAccountButton {
+#addBillingDetailsButton {
   background-color: #28a745;
   color: white;
   padding: 8px 16px;
