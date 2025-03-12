@@ -138,14 +138,19 @@ document.addEventListener('DOMContentLoaded', function() {
   const form = document.querySelector('form');
   if (form) {
     form.addEventListener('submit', function(e) {
-      // Verificar se há contas salvas e criar um campo hidden para enviá-las
-      if (savedAccounts.length > 0) {
+      // Verificar a opção selecionada para Apply Billing
+      const applyBillingYes = document.getElementById('applyBillingYes');
+      
+      // Somente enviar os dados de faturamento se a opção "Yes" estiver selecionada
+      if (applyBillingYes && applyBillingYes.checked && savedAccounts.length > 0) {
         const hiddenField = document.createElement('input');
         hiddenField.type = 'hidden';
         hiddenField.name = 'billingAccounts';
         hiddenField.value = JSON.stringify(savedAccounts);
         this.appendChild(hiddenField);
         console.log('Enviando billing accounts:', savedAccounts);
+      } else {
+        console.log('Opção "No" selecionada, não enviando detalhes de faturamento');
       }
     });
   }
@@ -172,6 +177,12 @@ document.addEventListener('DOMContentLoaded', function() {
           // Ocultar também a seção de contas salvas
           if (savedBillingAccounts) {
             savedBillingAccounts.style.display = 'none';
+          }
+          
+          // Limpar as contas salvas quando a opção 'No' for selecionada
+          savedAccounts.length = 0;
+          if (billingAccountsList) {
+            billingAccountsList.innerHTML = '';
           }
         }
       });

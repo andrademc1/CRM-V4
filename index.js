@@ -310,8 +310,8 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
       ]
     );
     
-    // Se houver contas de faturamento adicionais no formato JSON, processar
-    if (billingAccounts) {
+    // Verificar se o usuário selecionou "yes" para Apply Billing
+    if (applyBillingBool && billingAccounts) {
       try {
         console.log('Dados recebidos:', billingAccounts);
         const accounts = JSON.parse(billingAccounts);
@@ -343,7 +343,7 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
         console.error('Erro ao processar contas adicionais:', e, e.stack);
       }
     } else {
-      console.log('Nenhuma conta de faturamento adicional recebida');
+      console.log('Opção Apply Billing = No ou nenhuma conta de faturamento recebida');
     }
     
     await client.end();
