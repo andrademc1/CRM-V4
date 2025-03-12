@@ -148,6 +148,20 @@ app.get('/dashboard', requireLogin, async (req, res) => {
   }
 });
 
+// Rota para bookmakers
+app.get('/bookmakers', requireLogin, (req, res) => {
+  res.render('bookmakers', { 
+    usuario: req.session.usuarioLogado
+  });
+});
+
+// Rota para users
+app.get('/users', requireLogin, (req, res) => {
+  res.render('users', { 
+    usuario: req.session.usuarioLogado
+  });
+});
+
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/login');

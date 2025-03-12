@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users - CRM</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <header class="main-header">
+      <div class="logo">
+        <h1>CRM Sistema</h1>
+      </div>
+      <div class="user-info">
+        <span>Bem-vindo, <%= usuario.nome %></span>
+        <a href="/logout" class="btn btn-small">Sair</a>
+      </div>
+    </header>
+    
+    <div class="dashboard-content">
+      <aside class="sidebar">
+        <nav>
+          <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/bookmakers">Bookmakers</a></li>
+            <li class="active"><a href="/users">Users</a></li>
+          </ul>
+        </nav>
+      </aside>
+      
+      <main class="main-content">
+        <div class="page-header">
+          <h2>Users</h2>
+        </div>
+        
+        <div class="dashboard-actions">
+          <a href="#" class="btn btn-primary">Adicionar User</a>
+        </div>
+        
+        <div class="recent-section">
+          <h3>Lista de Users</h3>
+          
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Data de Cadastro</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Administrador</td>
+                <td>admin@exemplo.com</td>
+                <td>-</td>
+                <td>
+                  <a href="#" class="btn btn-small">Ver</a>
+                  <a href="#" class="btn btn-small">Editar</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
