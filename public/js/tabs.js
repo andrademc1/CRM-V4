@@ -162,9 +162,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (this.value === 'yes') {
           addAccountButtonSection.style.display = 'block';
           billingDetailsSection.style.display = 'none';
+          // Manter a seção de contas salvas visível, se existir
+          if (savedBillingAccounts && savedAccounts.length > 0) {
+            savedBillingAccounts.style.display = 'block';
+          }
         } else {
           addAccountButtonSection.style.display = 'none';
           billingDetailsSection.style.display = 'none'; // Ocultar os campos quando 'No' for selecionado
+          // Ocultar também a seção de contas salvas
+          if (savedBillingAccounts) {
+            savedBillingAccounts.style.display = 'none';
+          }
         }
       });
     });
