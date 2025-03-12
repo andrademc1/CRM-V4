@@ -96,6 +96,23 @@ async function inicializarBancoDados() {
       )
     `);
     
+    // Criar tabela de contas de faturamento de owners
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS owner_billing_accounts (
+        id SERIAL PRIMARY KEY,
+        owner_id INTEGER REFERENCES owners(id),
+        billing_name VARCHAR(100) NOT NULL,
+        billing_vat VARCHAR(50),
+        billing_address1 VARCHAR(200),
+        billing_address2 VARCHAR(200),
+        billing_city VARCHAR(100),
+        billing_state VARCHAR(100),
+        billing_zipcode VARCHAR(20),
+        billing_country VARCHAR(5),
+        data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
     // Verificar se a coluna status existe e adicionar se necessário
     try {
       const columnCheck = await client.query(`
@@ -306,11 +323,13 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
     // Se houver contas de faturamento adicionais no formato JSON, processar
     if (billingAccounts) {
       try {
+        console.log('Dados recebidos:', billingAccounts);
         const accounts = JSON.parse(billingAccounts);
-        console.log(`Recebidos ${accounts.length} billing accounts adicionais`);
+        console.log(`Recebidos ${accounts.length} billing accounts adicionais:`, accounts);
         
         // Inserir as contas adicionais na tabela owner_billing_accounts
         for (const account of accounts) {
+          console.log('Processando conta:', account);
           await client.query(
             `INSERT INTO owner_billing_accounts (
               owner_id, billing_name, billing_vat, billing_address1, billing_address2, 
@@ -325,13 +344,16 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
               account.city,
               account.state,
               account.zipCode,
-              account.country
+              account.countryCode
             ]
           );
+          console.log('Conta inserida com sucesso');
         }
       } catch (e) {
-        console.error('Erro ao processar contas adicionais:', e);
+        console.error('Erro ao processar contas adicionais:', e, e.stack);
       }
+    } else {
+      console.log('Nenhuma conta de faturamento adicional recebida');
     }
     
     await client.end();
