@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -35,19 +34,19 @@
         <div class="page-header">
           <h2>Adicionar Novo Owner</h2>
         </div>
-        
+
         <% if (erro) { %>
           <div class="alert alert-danger">
             <%= erro %>
           </div>
         <% } %>
-        
+
         <div class="form-container">
           <div class="tab">
             <button class="tab-link active" data-tab="tabOwnerSettings">Owner Settings</button>
             <button class="tab-link" data-tab="tabBillingDetails">Owner Billing Details</button>
           </div>
-          
+
           <form action="/bookmakers/adicionar-owner" method="POST" enctype="multipart/form-data">
             <!-- Aba de Owner Settings -->
             <div id="tabOwnerSettings" class="tab-content">
@@ -59,12 +58,12 @@
                   <option value="suspended">Suspended</option>
                 </select>
               </div>
-              
+
               <div class="form-group">
                 <label for="nome">Owner Name</label>
                 <input type="text" id="nome" name="nome" required>
               </div>
-              
+
               <div class="form-group">
                 <label for="ownerLogo">Owner Logo</label>
                 <input type="file" id="ownerLogo" name="ownerLogo" accept="image/*">
@@ -73,7 +72,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Aba de Owner Billing Details -->
             <div id="tabBillingDetails" class="tab-content">
               <div class="form-group">
@@ -89,49 +88,49 @@
                   </div>
                 </div>
               </div>
-              
+
               <div id="addAccountButtonSection" style="display: none; margin: 20px 0;">
                 <button type="button" id="addAccountButton" class="btn btn-primary">Add Account</button>
               </div>
-              
+
               <div id="billingDetailsSection">
                 <h4>Billing Details</h4>
-                
+
                 <div class="form-group">
                   <label for="billingName">Name</label>
                   <input type="text" id="billingName" name="billingName">
                 </div>
-                
+
                 <div class="form-group">
                   <label for="billingVat">VAT</label>
                   <input type="text" id="billingVat" name="billingVat">
                 </div>
-                
+
                 <div class="form-group">
                   <label for="billingAddress1">Address 1</label>
                   <input type="text" id="billingAddress1" name="billingAddress1">
                 </div>
-                
+
                 <div class="form-group">
                   <label for="billingAddress2">Address 2</label>
                   <input type="text" id="billingAddress2" name="billingAddress2">
                 </div>
-                
+
                 <div class="form-group">
                   <label for="billingCity">City</label>
                   <input type="text" id="billingCity" name="billingCity">
                 </div>
-                
+
                 <div class="form-group">
                   <label for="billingState">State/Province/Region</label>
                   <input type="text" id="billingState" name="billingState">
                 </div>
-                
+
                 <div class="form-group">
                   <label for="billingZipCode">Zip-Code</label>
                   <input type="text" id="billingZipCode" name="billingZipCode">
                 </div>
-                
+
                 <div class="form-group">
                   <label for="countrySearch">Country</label>
                   <input type="hidden" id="countryCode" name="countryCode">
@@ -143,9 +142,21 @@
                     <ul id="countryList" class="country-list"></ul>
                   </div>
                 </div>
+                <div class="billing-actions">
+                  <button type="button" id="saveBillingButton" class="btn btn-success">Save Billing Details</button>
+                  <!-- Add Another Account button remains -->
+                  <button type="button" id="addMoreAccountButton" class="btn btn-info">Add Another Account</button>
+                </div>
+              </div>
+
+              <div id="savedBillingAccounts" class="saved-accounts-section">
+                <h4>Saved Billing Accounts</h4>
+                <div id="billingAccountsList" class="accounts-list">
+                  <!--  JavaScript will add saved billing account cards here -->
+                </div>
               </div>
             </div>
-            
+
             <div class="form-actions" style="margin-top: 20px;">
               <button type="submit" class="btn btn-primary">Salvar</button>
               <a href="/bookmakers" class="btn" style="background-color: #6c757d;">Cancelar</a>
@@ -155,8 +166,21 @@
       </main>
     </div>
   </div>
-  
+
   <script src="/js/countries.js"></script>
   <script src="/js/tabs.js"></script>
+  <!-- Add JavaScript to handle saving and displaying billing details -->
+  <script>
+    // JavaScript code to handle saving billing details and updating the "savedBillingAccounts" section
+    document.getElementById('saveBillingButton').addEventListener('click', function() {
+      // Implement AJAX call to save billing details to the server
+      // Upon successful save, update the #billingAccountsList with the new details.
+      // Example using alert to replace actual saving logic
+        alert("Billing details saved!");
+    });
+
+    // Add additional JavaScript functions to handle adding more accounts and dynamically updating the UI.
+
+  </script>
 </body>
 </html>

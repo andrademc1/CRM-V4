@@ -236,7 +236,9 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
     billingCity,
     billingState,
     billingZipCode,
-    countryCode
+    countryCode,
+    // Novos campos para billing accounts (serão enviados pelo JavaScript)
+    billingAccounts
   } = req.body;
   
   if (!nome || nome.trim() === '') {
@@ -260,7 +262,7 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
     }
     
     // Inserir novo owner
-    await client.query(
+    const ownerResult = await client.query(
       `INSERT INTO owners (
         nome, 
         status, 
@@ -274,7 +276,7 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
         billing_state,
         billing_zipcode,
         billing_country
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
       [
         nome, 
         ownerStatus || 'inactive', 
@@ -290,6 +292,41 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
         applyBillingBool ? countryCode : null
       ]
     );
+    
+    // Se houver contas de faturamento adicionais no formato JSON, processar
+    if (billingAccounts) {
+      try {
+        const accounts = JSON.parse(billingAccounts);
+        
+        // Aqui você poderia inserir essas contas adicionais em uma tabela separada
+        // Para este exemplo, vamos apenas logar que elas foram recebidas
+        console.log(`Received ${accounts.length} additional billing accounts`);
+        
+        // Exemplo de como inserir em uma tabela (se você criar uma no futuro):
+        /*
+        for (const account of accounts) {
+          await client.query(
+            `INSERT INTO owner_billing_accounts (
+              owner_id, name, vat, address1, address2, city, state, zipcode, country
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [
+              ownerResult.rows[0].id,
+              account.name,
+              account.vat,
+              account.address1,
+              account.address2,
+              account.city,
+              account.state,
+              account.zipCode,
+              account.countryCode
+            ]
+          );
+        }
+        */
+      } catch (e) {
+        console.error('Erro ao processar contas adicionais:', e);
+      }
+    }
     
     await client.end();
     

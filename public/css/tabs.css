@@ -1,4 +1,3 @@
-
 /* Estilos para o sistema de abas */
 .tab {
   overflow: hidden;
@@ -144,6 +143,71 @@
   background-color: #28a745;
   color: white;
   padding: 8px 16px;
+}
+
+#billingDetailsSection h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.billing-actions .btn {
+  flex: 1;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-info {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.saved-accounts-section {
+  margin-top: 30px;
+  display: none;
+}
+
+.saved-accounts-section h4 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.accounts-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.account-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 15px;
+  width: 300px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.account-card h5 {
+  font-size: 16px;
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #28a745;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.account-card p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.account-card .account-address {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #eee;
 }
 
 #billingDetailsSection h4 {
