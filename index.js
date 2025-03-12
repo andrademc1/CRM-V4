@@ -38,8 +38,15 @@ async function getDbClient() {
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
   });
-  await client.connect();
-  return client;
+  
+  try {
+    await client.connect();
+    console.log('Conexão ao banco de dados realizada com sucesso.');
+    return client;
+  } catch (err) {
+    console.error('Erro ao conectar ao banco de dados:', err);
+    throw err; // Lança o erro para que a função chamadora possa lidar com ele.
+  }
 }
 
 // Inicializar tabelas do banco de dados
