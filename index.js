@@ -30,7 +30,10 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
+// Garantir que os arquivos de uploads sejam servidos diretamente
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+// Fallback para caminhos antigos
+app.use('/public/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Certificar-se de que o diretório de uploads existe
 const fs = require('fs');
