@@ -1,4 +1,3 @@
-
 /* Badges para status */
 .badge {
   display: inline-block;
@@ -367,27 +366,47 @@ ul {
   .dashboard-content {
     flex-direction: column;
   }
-  
+
   .sidebar {
     width: 100%;
     padding: 10px 0;
   }
-  
+
   .dashboard-stats {
     grid-template-columns: 1fr;
   }
-  
+
   .main-header {
     padding: 10px 15px;
     flex-direction: column;
     text-align: center;
   }
-  
+
   .user-info {
     margin-top: 10px;
   }
-  
+
   .main-content {
     padding: 15px;
   }
+}
+
+/* Estilos para botões de ação na tabela */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-delete:hover {
+  background-color: #c82333;
 }

@@ -352,6 +352,37 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
   }
 });
 
+// Rota para excluir owner
+app.get('/bookmakers/excluir/:id', requireLogin, async (req, res) => {
+  const ownerId = req.params.id;
+  
+  try {
+    const client = await getDbClient();
+    
+    // Primeiro, excluir as contas de faturamento relacionadas
+    await client.query('DELETE FROM owner_billing_accounts WHERE owner_id = $1', [ownerId]);
+    
+    // Depois, excluir o owner
+    await client.query('DELETE FROM owners WHERE id = $1', [ownerId]);
+    
+    await client.end();
+    
+    req.session.mensagem = {
+      tipo: 'sucesso',
+      texto: 'Owner excluído com sucesso!'
+    };
+    
+    res.redirect('/bookmakers');
+  } catch (err) {
+    console.error('Erro ao excluir owner:', err);
+    req.session.mensagem = {
+      tipo: 'erro',
+      texto: 'Erro ao excluir owner: ' + err.message
+    };
+    res.redirect('/bookmakers');
+  }
+});
+
 // Rota para users
 app.get('/users', requireLogin, async (req, res) => {
   try {

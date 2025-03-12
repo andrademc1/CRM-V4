@@ -67,6 +67,9 @@
                       </span>
                     </td>
                     <td><%= owner.nome %></td>
+                    <td class="actions">
+                      <button class="btn-delete" onclick="confirmarExclusao(<%= owner.id %>)">Excluir</button>
+                    </td>
                     <td><%= owner.apply_billing ? 'Sim' : 'Não' %></td>
                     <td>
                       <a href="/bookmakers/editar-owner/<%= owner.id %>" class="btn btn-small">Editar</a>
@@ -85,5 +88,13 @@
       </main>
     </div>
   </div>
+
+  <script>
+    function confirmarExclusao(ownerId) {
+      if (confirm('Tem certeza que deseja excluir este owner?')) {
+        window.location.href = `/bookmakers/excluir/${ownerId}`;
+      }
+    }
+  </script>
 </body>
 </html>
