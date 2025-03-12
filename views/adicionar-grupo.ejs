@@ -47,6 +47,7 @@
           <div class="tab">
             <button class="tab-link active" data-tab="groupSettings">Group Settings</button>
             <button class="tab-link" data-tab="groupAccountSettings">Group Account Settings</button>
+            <button class="tab-link" data-tab="groupBillingSettings">Group Billing Settings</button>
           </div>
 
           <form action="/bookmakers/adicionar-grupo" method="POST" enctype="multipart/form-data">
@@ -152,6 +153,92 @@
               <input type="hidden" id="savedAccountsData" name="savedAccountsData">
             </div>
 
+            <!-- Tab content for Group Billing Settings -->
+            <div id="groupBillingSettings" class="tab-content">
+              <div class="form-group">
+                <label>Apply Billing Settings by Group?</label>
+                <div class="radio-group">
+                  <div class="radio-option">
+                    <input type="radio" id="applyBillingYes" name="applyBilling" value="yes">
+                    <label for="applyBillingYes">Yes</label>
+                  </div>
+                  <div class="radio-option">
+                    <input type="radio" id="applyBillingNo" name="applyBilling" value="no" checked>
+                    <label for="applyBillingNo">No</label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botão para adicionar detalhes de faturação -->
+              <div id="addBillingDetailsButtonSection" style="display: none; margin: 20px 0;">
+                <button type="button" id="addBillingDetailsButton" class="btn btn-primary">Add Billing Details</button>
+              </div>
+
+              <!-- Seção de detalhes de faturação -->
+              <div id="billingDetailsSection" style="display: none;">
+                <h4>Billing Details</h4>
+
+                <div class="form-group">
+                  <label for="billingName">Name</label>
+                  <input type="text" id="billingName" name="billingName">
+                </div>
+
+                <div class="form-group">
+                  <label for="billingVat">VAT</label>
+                  <input type="text" id="billingVat" name="billingVat">
+                </div>
+
+                <div class="form-group">
+                  <label for="billingAddress1">Address 1</label>
+                  <input type="text" id="billingAddress1" name="billingAddress1">
+                </div>
+
+                <div class="form-group">
+                  <label for="billingAddress2">Address 2</label>
+                  <input type="text" id="billingAddress2" name="billingAddress2">
+                </div>
+
+                <div class="form-group">
+                  <label for="billingCity">City</label>
+                  <input type="text" id="billingCity" name="billingCity">
+                </div>
+
+                <div class="form-group">
+                  <label for="billingState">State/Province/Region</label>
+                  <input type="text" id="billingState" name="billingState">
+                </div>
+
+                <div class="form-group">
+                  <label for="billingZipCode">Zip-Code</label>
+                  <input type="text" id="billingZipCode" name="billingZipCode">
+                </div>
+
+                <div class="form-group">
+                  <label for="countrySearch">Country</label>
+                  <input type="hidden" id="countryCode" name="countryCode">
+                  <div class="country-selector">
+                    <div id="selectedCountry" class="country-display">Select a country</div>
+                    <div class="country-search">
+                      <input type="text" id="countrySearch" placeholder="Search country...">
+                    </div>
+                    <ul id="countryList" class="country-list"></ul>
+                  </div>
+                </div>
+
+                <div class="billing-actions">
+                  <button type="button" id="saveBillingButton" class="btn btn-success">Save Billing Details</button>
+                </div>
+              </div>
+
+              <div id="savedBillingAccounts" style="display: none; margin-top: 30px;">
+                <h4>Saved Billing Accounts</h4>
+                <div id="billingAccountsList" class="billing-accounts-container"></div>
+              </div>
+
+              <!-- Input hidden para armazenar os dados de faturação em formato JSON -->
+              <input type="hidden" id="savedBillingData" name="billingAccounts">
+            </div>
+
             <div class="form-actions">
               <a href="/bookmakers" class="btn btn-secondary">Cancelar</a>
               <button type="submit" class="btn btn-primary">Salvar</button>
@@ -162,6 +249,7 @@
     </div>
   </div>
 
+  <script src="/js/countries.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       // Preview da imagem do logo
@@ -362,6 +450,237 @@
         addMoreAccountButton.addEventListener('click', function() {
           // Mostrar seção de detalhes da conta para adicionar outra
           accountDetailsSection.style.display = 'block';
+        });
+      }
+
+      // Gerenciar Group Billing Settings
+      const billingRadios = document.querySelectorAll('input[name="applyBilling"]');
+      const addBillingDetailsButtonSection = document.getElementById('addBillingDetailsButtonSection');
+      const billingDetailsSection = document.getElementById('billingDetailsSection');
+      const savedBillingAccounts = document.getElementById('savedBillingAccounts');
+      const addBillingDetailsButton = document.getElementById('addBillingDetailsButton');
+      const saveBillingButton = document.getElementById('saveBillingButton');
+      const billingAccountsList = document.getElementById('billingAccountsList');
+      const savedBillingData = document.getElementById('savedBillingData');
+
+      // Array para armazenar os detalhes de faturação salvos
+      const savedBillingDetails = [];
+
+      // Carregar países da lista
+      const countryList = document.getElementById('countryList');
+      const countrySearch = document.getElementById('countrySearch');
+      const selectedCountry = document.getElementById('selectedCountry');
+      const countryCodeInput = document.getElementById('countryCode');
+
+      // Popular a lista de países
+      if (countryList && typeof countries !== 'undefined') {
+        // Limpar a lista atual
+        countryList.innerHTML = '';
+        
+        // Adicionar cada país à lista
+        Object.keys(countries).forEach(code => {
+          const country = countries[code];
+          const listItem = document.createElement('li');
+          listItem.dataset.code = code;
+          listItem.dataset.name = country.name;
+          
+          // Adicionar bandeira e nome do país
+          listItem.innerHTML = `
+            <span class="country-flag">${country.emoji}</span>
+            <span>${country.name}</span>
+          `;
+          
+          // Adicionar evento de clique
+          listItem.addEventListener('click', function() {
+            selectedCountry.innerHTML = `<span class="country-flag">${country.emoji}</span> ${country.name}`;
+            countryCodeInput.value = code;
+            countryList.style.display = 'none';
+            countrySearch.value = '';
+          });
+          
+          countryList.appendChild(listItem);
+        });
+      }
+
+      // Eventos para a busca de países
+      if (selectedCountry) {
+        selectedCountry.addEventListener('click', function() {
+          countryList.style.display = countryList.style.display === 'block' ? 'none' : 'block';
+        });
+      }
+
+      if (countrySearch) {
+        countrySearch.addEventListener('input', function() {
+          const searchValue = this.value.toLowerCase();
+          const items = countryList.getElementsByTagName('li');
+          
+          for (let i = 0; i < items.length; i++) {
+            const countryName = items[i].dataset.name.toLowerCase();
+            if (countryName.includes(searchValue)) {
+              items[i].style.display = '';
+            } else {
+              items[i].style.display = 'none';
+            }
+          }
+        });
+        
+        countrySearch.addEventListener('focus', function() {
+          countryList.style.display = 'block';
+        });
+      }
+      
+      // Clicar fora da lista de países para fechar
+      document.addEventListener('click', function(e) {
+        if (e.target !== countrySearch && 
+            e.target !== selectedCountry && 
+            !countryList.contains(e.target)) {
+          countryList.style.display = 'none';
+        }
+      });
+
+      // Função para adicionar cartão de faturação
+      function addBillingCard(billing) {
+        const card = document.createElement('div');
+        card.className = 'billing-account-card';
+        
+        // Obter emoji da bandeira do país
+        const countryEmoji = billing.countryCode && countries[billing.countryCode] ? 
+          countries[billing.countryCode].emoji : '';
+        
+        let cardContent = `
+          <div class="card-header">
+            <h5>${billing.name}</h5>
+          </div>
+          <div class="card-address">
+            <p><strong>VAT:</strong> ${billing.vat || '-'}</p>
+            <p>${billing.address1}</p>
+            <p>${billing.address2 || ''}</p>
+            <p>${billing.city}, ${billing.state} ${billing.zipCode}</p>
+            <p>
+              <span class="country-with-flag">
+                <span class="country-flag">${countryEmoji}</span>
+                ${billing.country}
+              </span>
+            </p>
+          </div>
+        `;
+        
+        card.innerHTML = cardContent;
+        billingAccountsList.appendChild(card);
+      }
+
+      // Eventos para os radio buttons de faturação
+      if (billingRadios.length > 0) {
+        billingRadios.forEach(radio => {
+          radio.addEventListener('change', function() {
+            if (this.value === 'yes') {
+              addBillingDetailsButtonSection.style.display = 'block';
+              
+              // Mostrar a seção de contas salvas se existirem
+              if (savedBillingDetails.length > 0) {
+                savedBillingAccounts.style.display = 'block';
+              }
+            } else {
+              // Se selecionar "No", esconder todas as seções relacionadas
+              addBillingDetailsButtonSection.style.display = 'none';
+              billingDetailsSection.style.display = 'none';
+              savedBillingAccounts.style.display = 'none';
+              
+              // Limpar os detalhes de faturação salvos
+              savedBillingDetails.length = 0;
+              if (billingAccountsList) {
+                billingAccountsList.innerHTML = '';
+              }
+              if (savedBillingData) {
+                savedBillingData.value = '';
+              }
+            }
+          });
+        });
+      }
+
+      // Evento para o botão Add Billing Details
+      if (addBillingDetailsButton) {
+        addBillingDetailsButton.addEventListener('click', function() {
+          billingDetailsSection.style.display = 'block';
+        });
+      }
+
+      // Evento para o botão Save Billing Details
+      if (saveBillingButton) {
+        saveBillingButton.addEventListener('click', function() {
+          const name = document.getElementById('billingName').value;
+          const vat = document.getElementById('billingVat').value;
+          const address1 = document.getElementById('billingAddress1').value;
+          const address2 = document.getElementById('billingAddress2').value;
+          const city = document.getElementById('billingCity').value;
+          const state = document.getElementById('billingState').value;
+          const zipCode = document.getElementById('billingZipCode').value;
+          const country = document.getElementById('selectedCountry').textContent;
+          const countryCode = document.getElementById('countryCode').value;
+          
+          // Validar campos obrigatórios
+          if (!name) {
+            alert('Please enter a billing name');
+            return;
+          }
+          
+          if (!address1) {
+            alert('Please enter address line 1');
+            return;
+          }
+          
+          if (!city) {
+            alert('Please enter a city');
+            return;
+          }
+          
+          if (!countryCode) {
+            alert('Please select a country');
+            return;
+          }
+          
+          // Criar objeto de faturação
+          const billingData = {
+            name,
+            vat,
+            address1,
+            address2,
+            city,
+            state,
+            zipCode,
+            country,
+            countryCode
+          };
+          
+          // Adicionar ao array de detalhes de faturação
+          savedBillingDetails.push(billingData);
+          
+          // Atualizar o input hidden com os dados de faturação
+          savedBillingData.value = JSON.stringify(savedBillingDetails);
+          console.log("Enviando billing accounts:", savedBillingDetails);
+          
+          // Mostrar a seção de detalhes de faturação salvos
+          savedBillingAccounts.style.display = 'block';
+          
+          // Adicionar cartão visual para os detalhes de faturação
+          addBillingCard(billingData);
+          
+          // Limpar formulário
+          document.getElementById('billingName').value = '';
+          document.getElementById('billingVat').value = '';
+          document.getElementById('billingAddress1').value = '';
+          document.getElementById('billingAddress2').value = '';
+          document.getElementById('billingCity').value = '';
+          document.getElementById('billingState').value = '';
+          document.getElementById('billingZipCode').value = '';
+          document.getElementById('selectedCountry').textContent = 'Select a country';
+          document.getElementById('countryCode').value = '';
+          
+          // Esconder seção de detalhes da faturação
+          billingDetailsSection.style.display = 'none';
+          
+          alert('Billing details saved!');
         });
       }
     });
