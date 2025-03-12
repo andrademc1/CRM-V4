@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Adicionar outra conta
+  // Adicionar outros detalhes de faturamento
   const addMoreAccountButton = document.getElementById('addMoreAccountButton');
   if (addMoreAccountButton) {
     addMoreAccountButton.addEventListener('click', function() {
