@@ -464,9 +464,10 @@
       }
 
       // Função para adicionar card da conta
-      function addAccountCard(account) {
+      function addAccountCard(account, index) {
         const card = document.createElement('div');
         card.className = 'account-card';
+        card.dataset.index = index;
 
         let countriesHtml = '';
         if (account.countries && account.countries.length > 0) {
@@ -478,6 +479,7 @@
         }
 
         let cardContent = `
+          <button class="account-delete-btn" data-index="${index}">×</button>
           <h5>${account.owner}</h5>
           <p><strong>Status:</strong> ${account.status}</p>
           <p><strong>Username:</strong> ${account.username}</p>
@@ -487,6 +489,37 @@
 
         card.innerHTML = cardContent;
         accountsList.appendChild(card);
+
+        // Adicionar evento de clique para o botão de exclusão
+        card.querySelector('.account-delete-btn').addEventListener('click', function() {
+          const indexToRemove = parseInt(this.dataset.index);
+          removeAccount(indexToRemove);
+        });
+      }
+
+      // Função para remover uma conta
+      function removeAccount(index) {
+        if (confirm('Tem certeza que deseja excluir esta conta?')) {
+          savedAccounts.splice(index, 1);
+          // Atualizar o input hidden com os dados atualizados
+          savedBookmakerAccountsData.value = JSON.stringify(savedAccounts);
+          // Reconstruir a lista de contas
+          rebuildAccountsList();
+        }
+      }
+
+      // Função para reconstruir a lista de contas
+      function rebuildAccountsList() {
+        accountsList.innerHTML = '';
+
+        if (savedAccounts.length === 0) {
+          savedAccountsSection.style.display = 'none';
+          return;
+        }
+
+        savedAccounts.forEach((account, index) => {
+          addAccountCard(account, index);
+        });
       }
 
       // Evento para o botão Add Account
@@ -667,7 +700,7 @@
           savedAccountsSection.style.display = 'block';
 
           // Adicionar card visual para a conta
-          addAccountCard(accountData);
+          addAccountCard(accountData, savedAccounts.length - 1);
 
           // Limpar formulário
           ownerSelect.selectedIndex = 0;
@@ -685,5 +718,59 @@
       }
     });
   </script>
+  <style>
+    .account-card {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 15px;
+      width: 300px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .account-card h5 {
+      font-size: 16px;
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #28a745;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+
+    .account-delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .account-delete-btn:hover {
+      background-color: #c82333;
+    }
+
+    .account-countries {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .country-mini-badge {
+      margin-right: 5px;
+      margin-bottom: 5px;
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  </style>
 </body>
 </html>
