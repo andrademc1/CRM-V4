@@ -8,7 +8,12 @@ const multer = require('multer');
 // Configurar armazenamento para upload de arquivos
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, path.join(__dirname, 'public/uploads/'));
+    // Garantir que o diretório existe
+    const uploadPath = path.join(__dirname, 'public/uploads/');
+    if (!fs.existsSync(uploadPath)){
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
   },
   filename: function(req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -25,7 +30,15 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
+// Certificar-se de que o diretório de uploads existe
+const fs = require('fs');
+const uploadsDir = path.join(__dirname, 'public/uploads');
+if (!fs.existsSync(uploadsDir)){
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log(`Diretório de uploads criado em ${uploadsDir}`);
+}
 app.use(session({
   secret: 'crm-session-secret',
   resave: false,
