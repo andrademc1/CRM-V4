@@ -503,8 +503,7 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
     nome, 
     status, 
     affiliateUrl,
-    selectedCountriesData,
-    savedAccountsData
+    selectedCountriesData
   } = req.body;
   
   if (!nome || nome.trim() === '') {
@@ -527,7 +526,7 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
     }
     
     // Inserir novo bookmaker
-    const bookmakerResult = await client.query(
+    await client.query(
       `INSERT INTO bookmakers (
         group_id,
         nome, 
@@ -535,7 +534,7 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
         logo_url, 
         affiliate_url, 
         geographies
-      ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      ) VALUES ($1, $2, $3, $4, $5, $6)`,
       [
         groupId,
         nome, 
@@ -545,63 +544,6 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
         selectedCountriesData ? selectedCountriesData : null
       ]
     );
-    
-    const bookmakerId = bookmakerResult.rows[0].id;
-    
-    // Processar contas do bookmaker se existirem
-    if (savedAccountsData) {
-      try {
-        // Verificar se a tabela bookmaker_accounts existe
-        const tableCheck = await client.query(`
-          SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE table_name = 'bookmaker_accounts'
-          );
-        `);
-        
-        const tableExists = tableCheck.rows[0].exists;
-        
-        // Criar tabela de contas de bookmaker se não existir
-        if (!tableExists) {
-          await client.query(`
-            CREATE TABLE bookmaker_accounts (
-              id SERIAL PRIMARY KEY,
-              bookmaker_id INTEGER REFERENCES bookmakers(id) ON DELETE CASCADE,
-              owner_id INTEGER REFERENCES owners(id),
-              status VARCHAR(20) DEFAULT 'active',
-              username VARCHAR(100) NOT NULL,
-              password VARCHAR(100) NOT NULL,
-              geographies JSONB,
-              data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-          `);
-          console.log('Tabela bookmaker_accounts criada.');
-        }
-        
-        console.log('Processando contas do bookmaker:', savedAccountsData);
-        const accounts = JSON.parse(savedAccountsData);
-        
-        // Inserir contas na tabela bookmaker_accounts
-        for (const account of accounts) {
-          await client.query(
-            `INSERT INTO bookmaker_accounts (
-              bookmaker_id, owner_id, status, username, password, geographies
-            ) VALUES ($1, $2, $3, $4, $5, $6)`,
-            [
-              bookmakerId,
-              account.ownerId,
-              account.status,
-              account.username,
-              account.password,
-              account.geographies ? JSON.stringify(account.geographies) : null
-            ]
-          );
-          console.log('Conta do bookmaker inserida com sucesso');
-        }
-      } catch (e) {
-        console.error('Erro ao processar contas do bookmaker:', e, e.stack);
-      }
-    }
     
     await client.end();
     
