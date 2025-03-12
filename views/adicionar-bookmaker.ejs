@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adicionar Bookmaker - CRM</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/tabs.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <header class="main-header">
+      <div class="logo">
+        <h1>CRM Sistema</h1>
+      </div>
+      <div class="user-info">
+        <span>Bem-vindo, <%= usuario.nome %></span>
+        <a href="/logout" class="btn btn-small">Sair</a>
+      </div>
+    </header>
+
+    <div class="dashboard-content">
+      <aside class="sidebar">
+        <nav>
+          <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li class="active"><a href="/bookmakers">Bookmakers</a></li>
+            <li><a href="/users">Users</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <div class="page-header">
+          <h2>Adicionar Bookmaker</h2>
+        </div>
+
+        <% if (erro) { %>
+          <div class="alert alert-danger">
+            <%= erro %>
+          </div>
+        <% } %>
+
+        <div class="form-container">
+          <!-- Tab links -->
+          <div class="tab">
+            <button class="tab-link active" data-tab="bookmakerSettings">Bookmaker Settings</button>
+          </div>
+
+          <form action="/bookmakers/adicionar-bookmaker" method="POST" enctype="multipart/form-data">
+            <!-- Tab content -->
+            <div id="bookmakerSettings" class="tab-content" style="display:block;">
+              <div class="form-group">
+                <label for="groupId">Bookmaker Group:</label>
+                <select id="groupId" name="groupId" required>
+                  <option value="">Selecione um grupo</option>
+                  <% groups.forEach(group => { %>
+                    <option value="<%= group.id %>"><%= group.nome %></option>
+                  <% }); %>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="status">Bookmaker Status:</label>
+                <select id="status" name="status">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="nome">Bookmaker Name:</label>
+                <input type="text" id="nome" name="nome" required>
+              </div>
+
+              <div class="form-group">
+                <label for="bookmakerLogo">Bookmaker Logo:</label>
+                <input type="file" id="bookmakerLogo" name="bookmakerLogo" accept="image/*">
+                <div class="logo-preview-container">
+                  <img id="logoPreview" class="logo-preview" src="#" alt="Logo Preview">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="affiliateUrl">Bookmaker Affiliate URL:</label>
+                <input type="url" id="affiliateUrl" name="affiliateUrl">
+              </div>
+
+              <div class="form-group">
+                <label for="geographies">Geographies:</label>
+                <div class="country-multi-selector">
+                  <div class="country-search">
+                    <input type="text" id="countrySearch" placeholder="Search countries...">
+                  </div>
+                  <div class="selected-countries" id="selectedCountries"></div>
+                  <ul id="countryList" class="country-list"></ul>
+                  <input type="hidden" id="selectedCountriesData" name="selectedCountriesData">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <a href="/bookmakers" class="btn btn-secondary">Cancelar</a>
+              <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/countries.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Preview da imagem do logo
+      const logoInput = document.getElementById('bookmakerLogo');
+      const logoPreview = document.getElementById('logoPreview');
+      
+      if (logoInput) {
+        logoInput.addEventListener('change', function() {
+          const file = this.files[0];
+          const preview = document.getElementById('logoPreview');
+
+          if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+              preview.src = e.target.result;
+              preview.style.display = 'block';
+            };
+
+            reader.readAsDataURL(file);
+          } else {
+            preview.src = '';
+            preview.style.display = 'none';
+          }
+        });
+      }
+
+      // Função para gerenciar abas
+      function openTab(tabName) {
+        const tabContents = document.getElementsByClassName('tab-content');
+        for (let i = 0; i < tabContents.length; i++) {
+          tabContents[i].style.display = 'none';
+        }
+
+        const tabLinks = document.getElementsByClassName('tab-link');
+        for (let i = 0; i < tabLinks.length; i++) {
+          tabLinks[i].classList.remove('active');
+        }
+
+        document.getElementById(tabName).style.display = 'block';
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+      }
+
+      // Adicionar event listeners para as abas
+      const tabLinks = document.getElementsByClassName('tab-link');
+      for (let i = 0; i < tabLinks.length; i++) {
+        tabLinks[i].addEventListener('click', function() {
+          openTab(this.getAttribute('data-tab'));
+        });
+      }
+
+      // Configurar seletor múltiplo de países
+      const countryList = document.getElementById('countryList');
+      const countrySearch = document.getElementById('countrySearch');
+      const selectedCountries = document.getElementById('selectedCountries');
+      const selectedCountriesData = document.getElementById('selectedCountriesData');
+      
+      // Array para armazenar os países selecionados
+      const selectedCountriesArray = [];
+
+      // Popular a lista de países
+      if (countryList && typeof countries !== 'undefined') {
+        // Limpar a lista atual
+        countryList.innerHTML = '';
+        
+        // Adicionar cada país à lista
+        Object.keys(countries).forEach(code => {
+          const country = countries[code];
+          const listItem = document.createElement('li');
+          listItem.dataset.code = code;
+          listItem.dataset.name = country.name;
+          
+          // Adicionar bandeira e nome do país
+          listItem.innerHTML = `
+            <span class="country-flag">${country.flag}</span>
+            <span>${country.name}</span>
+          `;
+          
+          // Adicionar evento de clique
+          listItem.addEventListener('click', function() {
+            const countryCode = this.dataset.code;
+            const countryName = this.dataset.name;
+            const countryFlag = country.flag;
+            
+            // Verificar se o país já está selecionado
+            if (!selectedCountriesArray.some(c => c.code === countryCode)) {
+              // Adicionar ao array
+              selectedCountriesArray.push({
+                code: countryCode,
+                name: countryName,
+                flag: countryFlag
+              });
+              
+              // Atualizar o hidden input
+              selectedCountriesData.value = JSON.stringify(selectedCountriesArray);
+              
+              // Adicionar badge à área de países selecionados
+              addCountryBadge(countryCode, countryName, countryFlag);
+            }
+            
+            // Limpar a pesquisa
+            countrySearch.value = '';
+            filterCountries('');
+          });
+          
+          countryList.appendChild(listItem);
+        });
+      }
+
+      // Função para adicionar badge de país
+      function addCountryBadge(code, name, flag) {
+        const badge = document.createElement('div');
+        badge.className = 'country-badge';
+        badge.dataset.code = code;
+        
+        badge.innerHTML = `
+          <span class="country-flag">${flag}</span>
+          <span>${name}</span>
+          <span class="badge-remove" data-code="${code}">&times;</span>
+        `;
+        
+        // Adicionar evento para remover o país
+        const removeButton = badge.querySelector('.badge-remove');
+        removeButton.addEventListener('click', function(e) {
+          const countryCode = this.dataset.code;
+          
+          // Remover do array
+          const index = selectedCountriesArray.findIndex(c => c.code === countryCode);
+          if (index !== -1) {
+            selectedCountriesArray.splice(index, 1);
+          }
+          
+          // Atualizar o hidden input
+          selectedCountriesData.value = JSON.stringify(selectedCountriesArray);
+          
+          // Remover o badge
+          badge.remove();
+          
+          e.stopPropagation();
+        });
+        
+        selectedCountries.appendChild(badge);
+      }
+
+      // Eventos para a busca de países
+      if (countrySearch) {
+        countrySearch.addEventListener('input', function() {
+          filterCountries(this.value.toLowerCase());
+        });
+        
+        countrySearch.addEventListener('focus', function() {
+          countryList.style.display = 'block';
+        });
+      }
+      
+      // Função para filtrar países
+      function filterCountries(searchValue) {
+        const items = countryList.getElementsByTagName('li');
+        
+        for (let i = 0; i < items.length; i++) {
+          const countryName = items[i].dataset.name.toLowerCase();
+          if (countryName.includes(searchValue)) {
+            items[i].style.display = '';
+          } else {
+            items[i].style.display = 'none';
+          }
+        }
+      }
+      
+      // Clicar fora da lista de países para fechar
+      document.addEventListener('click', function(e) {
+        if (e.target !== countrySearch && 
+            !countryList.contains(e.target)) {
+          countryList.style.display = 'none';
+        } else {
+          countryList.style.display = 'block';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

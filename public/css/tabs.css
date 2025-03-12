@@ -88,6 +88,95 @@
 }
 
 .country-flag {
+
+/* Estilos para seleção múltipla de países */
+.country-multi-selector {
+  position: relative;
+  max-width: 100%;
+  margin-bottom: 15px;
+}
+
+.selected-countries {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  min-height: 40px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.country-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  border-radius: 20px;
+  padding: 5px 10px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+.country-badge .country-flag {
+  margin-right: 5px;
+  font-size: 1.2em;
+}
+
+.badge-remove {
+  margin-left: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1.2em;
+  color: #777;
+}
+
+.badge-remove:hover {
+  color: #ff0000;
+}
+
+.country-list {
+  position: absolute;
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  display: none;
+}
+
+.country-list li {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.country-list li:hover {
+  background-color: #f5f5f5;
+}
+
+.country-list li .country-flag {
+  margin-right: 8px;
+  font-size: 1.2em;
+}
+
+.country-search {
+  margin-bottom: 10px;
+}
+
+.country-search input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
   margin-right: 8px;
   font-size: 1.2em;
 }

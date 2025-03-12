@@ -250,6 +250,26 @@ app.get('/bookmakers', requireLogin, async (req, res) => {
     const ownersResult = await client.query('SELECT * FROM owners ORDER BY nome');
     const groupsResult = await client.query('SELECT * FROM groups ORDER BY nome');
     
+    // Verificar se a tabela bookmakers existe
+    const bookmakerTableExists = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'bookmakers'
+      );
+    `);
+    
+    let bookmakers = [];
+    if (bookmakerTableExists.rows[0].exists) {
+      // Buscar bookmakers com nome do grupo
+      const bookmakersResult = await client.query(`
+        SELECT b.*, g.nome as group_name 
+        FROM bookmakers b 
+        LEFT JOIN groups g ON b.group_id = g.id 
+        ORDER BY b.nome
+      `);
+      bookmakers = bookmakersResult.rows;
+    }
+    
     // Para cada owner, recuperar suas contas de faturamento
     for (const owner of ownersResult.rows) {
       const billingAccountsResult = await client.query(
@@ -281,6 +301,7 @@ app.get('/bookmakers', requireLogin, async (req, res) => {
       usuario: req.session.usuarioLogado,
       owners: ownersResult.rows,
       groups: groupsResult.rows,
+      bookmakers: bookmakers,
       mensagem: req.session.mensagem,
       countries: countries
     });
@@ -292,6 +313,7 @@ app.get('/bookmakers', requireLogin, async (req, res) => {
       usuario: req.session.usuarioLogado,
       owners: [],
       groups: [],
+      bookmakers: [],
       mensagem: { tipo: 'erro', texto: 'Erro ao carregar bookmakers' }
     });
   }
@@ -450,6 +472,102 @@ app.get('/bookmakers/adicionar-grupo', requireLogin, (req, res) => {
     usuario: req.session.usuarioLogado,
     erro: null
   });
+});
+
+// Rota para formulário de adicionar bookmaker
+app.get('/bookmakers/adicionar-bookmaker', requireLogin, async (req, res) => {
+  try {
+    const client = await getDbClient();
+    const groupsResult = await client.query('SELECT id, nome FROM groups WHERE status = $1 ORDER BY nome', ['active']);
+    await client.end();
+    
+    res.render('adicionar-bookmaker', { 
+      usuario: req.session.usuarioLogado,
+      groups: groupsResult.rows,
+      erro: null
+    });
+  } catch (err) {
+    console.error('Erro ao carregar formulário de bookmaker:', err);
+    res.render('adicionar-bookmaker', { 
+      usuario: req.session.usuarioLogado,
+      groups: [],
+      erro: 'Erro ao carregar dados. Por favor, tente novamente.'
+    });
+  }
+});
+
+// Rota para processar adição de bookmaker
+app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmakerLogo'), async (req, res) => {
+  const { 
+    groupId,
+    nome, 
+    status, 
+    affiliateUrl,
+    selectedCountriesData
+  } = req.body;
+  
+  if (!nome || nome.trim() === '') {
+    return res.render('adicionar-bookmaker', { 
+      usuario: req.session.usuarioLogado,
+      erro: 'O campo Nome é obrigatório'
+    });
+  }
+  
+  try {
+    const client = await getDbClient();
+    
+    // Buscar grupos novamente para o caso de erro e precisar renderizar o formulário
+    const groupsResult = await client.query('SELECT id, nome FROM groups WHERE status = $1 ORDER BY nome', ['active']);
+    
+    // Processar upload de logo
+    let logoUrl = '';
+    if (req.file) {
+      logoUrl = `/uploads/${req.file.filename}`;
+    }
+    
+    // Inserir novo bookmaker
+    await client.query(
+      `INSERT INTO bookmakers (
+        group_id,
+        nome, 
+        status, 
+        logo_url, 
+        affiliate_url, 
+        geographies
+      ) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        groupId,
+        nome, 
+        status || 'active', 
+        logoUrl, 
+        affiliateUrl || '',
+        selectedCountriesData ? selectedCountriesData : null
+      ]
+    );
+    
+    await client.end();
+    
+    // Adicionar mensagem de sucesso à sessão
+    req.session.mensagem = {
+      tipo: 'sucesso',
+      texto: 'Bookmaker adicionado com sucesso!'
+    };
+    
+    res.redirect('/bookmakers');
+  } catch (err) {
+    console.error('Erro ao adicionar bookmaker:', err);
+    
+    // Buscar grupos novamente para renderizar o formulário com erro
+    const client = await getDbClient();
+    const groupsResult = await client.query('SELECT id, nome FROM groups WHERE status = $1 ORDER BY nome', ['active']);
+    await client.end();
+    
+    res.render('adicionar-bookmaker', { 
+      usuario: req.session.usuarioLogado,
+      groups: groupsResult.rows,
+      erro: 'Erro ao adicionar bookmaker: ' + err.message
+    });
+  }
 });
 
 // Rota para processar adição de grupo
@@ -677,6 +795,34 @@ app.get('/bookmakers/excluir-grupo/:id', requireLogin, async (req, res) => {
     req.session.mensagem = {
       tipo: 'erro',
       texto: 'Erro ao excluir grupo: ' + err.message
+    };
+    res.redirect('/bookmakers');
+  }
+});
+
+// Rota para excluir bookmaker
+app.get('/bookmakers/excluir-bookmaker/:id', requireLogin, async (req, res) => {
+  const bookmakerId = req.params.id;
+  
+  try {
+    const client = await getDbClient();
+    
+    // Excluir o bookmaker
+    await client.query('DELETE FROM bookmakers WHERE id = $1', [bookmakerId]);
+    
+    await client.end();
+    
+    req.session.mensagem = {
+      tipo: 'sucesso',
+      texto: 'Bookmaker excluído com sucesso!'
+    };
+    
+    res.redirect('/bookmakers');
+  } catch (err) {
+    console.error('Erro ao excluir bookmaker:', err);
+    req.session.mensagem = {
+      tipo: 'erro',
+      texto: 'Erro ao excluir bookmaker: ' + err.message
     };
     res.redirect('/bookmakers');
   }

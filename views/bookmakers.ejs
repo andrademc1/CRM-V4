@@ -43,6 +43,7 @@
         <div class="dashboard-actions">
           <a href="/bookmakers/adicionar-owner" class="btn btn-primary">Add Owner</a>
           <a href="/bookmakers/adicionar-grupo" class="btn btn-primary">Add Group</a>
+          <a href="/bookmakers/adicionar-bookmaker" class="btn btn-primary">Add Bookmaker</a>
         </div>
 
         <div class="recent-section">
@@ -132,6 +133,52 @@
             </tbody>
           </table>
         </div>
+
+        <div class="recent-section">
+          <h3>Lista de Bookmakers</h3>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Logo</th>
+                <th>Nome</th>
+                <th>Grupo</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (bookmakers && bookmakers.length > 0) { %>
+                <% bookmakers.forEach(bookmaker => { %>
+                  <tr>
+                    <td>
+                      <% if (bookmaker.logo_url) { %>
+                        <img src="<%= bookmaker.logo_url %>" alt="Logo" style="max-width: 50px; max-height: 50px; object-fit: contain;" onerror="this.onerror=null; this.src='/img/no-image.png'; this.alt='Imagem não disponível';">
+                      <% } else { %>
+                        <span>Sem logo</span>
+                      <% } %>
+                    </td>
+                    <td><%= bookmaker.nome %></td>
+                    <td><%= bookmaker.group_name %></td>
+                    <td>
+                      <% const statusClass = bookmaker.status === 'active' ? 'badge-success' : (bookmaker.status === 'suspended' ? 'badge-danger' : 'badge-secondary'); %>
+                      <span class="badge <%= statusClass %>">
+                        <%= bookmaker.status ? (bookmaker.status.charAt(0).toUpperCase() + bookmaker.status.slice(1)) : 'Indefinido' %>
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn-delete" onclick="confirmarExclusaoBookmaker(<%= bookmaker.id %>)">Excluir</button>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="5">Nenhum bookmaker cadastrado</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
       </main>
     </div>
   </div>
@@ -146,6 +193,12 @@
     function confirmarExclusaoGrupo(groupId) {
       if (confirm('Tem certeza que deseja excluir este grupo?')) {
         window.location.href = `/bookmakers/excluir-grupo/${groupId}`;
+      }
+    }
+    
+    function confirmarExclusaoBookmaker(bookmakerId) {
+      if (confirm('Tem certeza que deseja excluir este bookmaker?')) {
+        window.location.href = `/bookmakers/excluir-bookmaker/${bookmakerId}`;
       }
     }
   </script>
