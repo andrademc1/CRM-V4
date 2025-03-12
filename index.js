@@ -95,6 +95,25 @@ async function inicializarBancoDados() {
         data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // Verificar se a coluna status existe e adicionar se necessário
+    try {
+      const columnCheck = await client.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'owners' AND column_name = 'status'
+      `);
+      
+      if (columnCheck.rows.length === 0) {
+        console.log('Adicionando coluna "status" à tabela owners...');
+        await client.query(`
+          ALTER TABLE owners 
+          ADD COLUMN status VARCHAR(20) DEFAULT 'active'
+        `);
+      }
+    } catch (err) {
+      console.error('Erro ao verificar/adicionar coluna status:', err);
+    }
 
     // Inserir usuário padrão, se não existir
     const usuarioExistente = await client.query('SELECT * FROM usuarios WHERE email = $1', ['admin@exemplo.com']);
