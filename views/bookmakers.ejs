@@ -63,7 +63,7 @@
                   <tr>
                     <td>
                       <% if (owner.logo_url) { %>
-                        <img src="<%= owner.logo_url %>" alt="Logo" style="max-width: 50px; max-height: 50px; object-fit: contain;" onerror="this.onerror=null; this.src='/img/no-image.png'; this.alt='Imagem não disponível';">
+                        <img src="<%= owner.logo_url %>" alt="Logo" style="max-width: 50px; max-height: 50px;">
                       <% } else { %>
                         <span>Sem logo</span>
                       <% } %>
@@ -107,7 +107,7 @@
                   <tr>
                     <td>
                       <% if (group.logo_url) { %>
-                        <img src="<%= group.logo_url %>" alt="Logo" style="max-width: 50px; max-height: 50px; object-fit: contain;" onerror="this.onerror=null; this.src='/img/no-image.png'; this.alt='Imagem não disponível';">
+                        <img src="<%= group.logo_url %>" alt="Logo" style="max-width: 50px; max-height: 50px;">
                       <% } else { %>
                         <span>Sem logo</span>
                       <% } %>

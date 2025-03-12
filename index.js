@@ -5,23 +5,7 @@ const session = require('express-session');
 const path = require('path');
 const { Client } = require('pg');
 const multer = require('multer');
-// Configurar armazenamento para upload de arquivos
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    // Garantir que o diretório existe
-    const uploadPath = path.join(__dirname, 'public/uploads/');
-    if (!fs.existsSync(uploadPath)){
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: function(req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-  }
-});
-const upload = multer({ storage: storage });
+const upload = multer({ dest: 'public/uploads/' });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,18 +14,6 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-// Garantir que os arquivos de uploads sejam servidos diretamente
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
-// Fallback para caminhos antigos
-app.use('/public/uploads', express.static(path.join(__dirname, 'public/uploads')));
-
-// Certificar-se de que o diretório de uploads existe
-const fs = require('fs');
-const uploadsDir = path.join(__dirname, 'public/uploads');
-if (!fs.existsSync(uploadsDir)){
-    fs.mkdirSync(uploadsDir, { recursive: true });
-    console.log(`Diretório de uploads criado em ${uploadsDir}`);
-}
 app.use(session({
   secret: 'crm-session-secret',
   resave: false,
@@ -460,9 +432,7 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
     groupUrl, 
     groupAffiliateUrl, 
     applyAccount,
-    savedAccountsData,
-    applyBilling,
-    billingAccounts
+    savedAccountsData
   } = req.body;
   
   console.log('Dados do formulário:', req.body);
@@ -569,70 +539,6 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
         }
       } catch (e) {
         console.error('Erro ao processar contas do grupo:', e, e.stack);
-      }
-    }
-    
-    // Verificar se o usuário selecionou "yes" para Apply Billing
-    if (applyBilling === 'yes' && billingAccounts) {
-      try {
-        // Verificar se a tabela group_billing_accounts existe
-        const tableCheck = await client.query(`
-          SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE table_name = 'group_billing_accounts'
-          );
-        `);
-        
-        const tableExists = tableCheck.rows[0].exists;
-        
-        // Criar tabela de contas de faturamento de grupo se não existir
-        if (!tableExists) {
-          await client.query(`
-            CREATE TABLE group_billing_accounts (
-              id SERIAL PRIMARY KEY,
-              group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-              billing_name VARCHAR(100) NOT NULL,
-              billing_vat VARCHAR(50),
-              billing_address1 VARCHAR(200),
-              billing_address2 VARCHAR(200),
-              billing_city VARCHAR(100),
-              billing_state VARCHAR(100),
-              billing_zipcode VARCHAR(20),
-              billing_country VARCHAR(100),
-              billing_country_code VARCHAR(5),
-              data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-          `);
-          console.log('Tabela group_billing_accounts criada.');
-        }
-        
-        console.log('Processando contas de faturamento do grupo:', billingAccounts);
-        const accounts = JSON.parse(billingAccounts);
-        
-        // Inserir contas na tabela group_billing_accounts
-        for (const account of accounts) {
-          await client.query(
-            `INSERT INTO group_billing_accounts (
-              group_id, billing_name, billing_vat, billing_address1, billing_address2, 
-              billing_city, billing_state, billing_zipcode, billing_country, billing_country_code
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-            [
-              groupId,
-              account.name,
-              account.vat,
-              account.address1,
-              account.address2,
-              account.city,
-              account.state,
-              account.zipCode,
-              account.country,
-              account.countryCode
-            ]
-          );
-          console.log('Conta de faturamento do grupo inserida com sucesso');
-        }
-      } catch (e) {
-        console.error('Erro ao processar contas de faturamento do grupo:', e, e.stack);
       }
     }
     
