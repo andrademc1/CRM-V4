@@ -166,32 +166,5 @@
 
   <script src="/js/countries.js"></script>
   <script src="/js/tabs.js"></script>
-  <script>
-    document.getElementById('saveBillingButton').addEventListener('click', function() {
-      // Placeholder: Replace with actual AJAX call to save billing details
-      const billingDetails = {
-        name: document.getElementById('billingName').value,
-        vat: document.getElementById('billingVat').value,
-        // ... other billing details
-      };
-
-      // Simulate saving and adding to the list
-      addBillingAccountToList(billingDetails);
-      document.getElementById('savedBillingAccounts').style.display = 'block';
-      alert("Billing details saved!");
-    });
-
-    function addBillingAccountToList(billingDetails) {
-      const billingAccountsList = document.getElementById('billingAccountsList');
-      const newAccountCard = document.createElement('div');
-      newAccountCard.classList.add('billing-account-card');
-      newAccountCard.innerHTML = `
-        <h3>${billingDetails.name}</h3>
-        <p>VAT: ${billingDetails.vat}</p>
-        <!-- Add other billing details here -->
-      `;
-      billingAccountsList.appendChild(newAccountCard);
-    }
-  </script>
 </body>
 </html>
