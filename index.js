@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const path = require('path');
 const { Client } = require('pg');
+const multer = require('multer');
+const upload = multer({ dest: 'public/uploads/' });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -201,7 +203,9 @@ app.get('/bookmakers/adicionar-owner', requireLogin, (req, res) => {
 });
 
 // Rota para processar adição de owner
-app.post('/bookmakers/adicionar-owner', requireLogin, async (req, res) => {
+app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo'), async (req, res) => {
+  console.log('Dados do formulário:', req.body);
+  
   const { 
     nome, 
     ownerStatus,
@@ -216,7 +220,7 @@ app.post('/bookmakers/adicionar-owner', requireLogin, async (req, res) => {
     countryCode
   } = req.body;
   
-  if (!nome) {
+  if (!nome || nome.trim() === '') {
     return res.render('adicionar-owner', { 
       usuario: req.session.usuarioLogado,
       erro: 'O campo Nome é obrigatório'
@@ -229,10 +233,12 @@ app.post('/bookmakers/adicionar-owner', requireLogin, async (req, res) => {
   try {
     const client = await getDbClient();
     
-    // Processar upload de logo (implementação básica, sem armazenamento real de arquivos)
-    // Em uma implementação completa, você iria salvar o arquivo em um serviço de armazenamento
-    // e guardar apenas a URL no banco de dados
-    const logoUrl = ''; // Aqui seria o URL do logo após upload
+    // Processar upload de logo
+    let logoUrl = '';
+    if (req.file) {
+      logoUrl = `/uploads/${req.file.filename}`;
+      console.log('Logo URL:', logoUrl);
+    }
     
     // Inserir novo owner
     await client.query(
