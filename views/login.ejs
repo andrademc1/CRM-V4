@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - CRM</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-box">
+      <h1>CRM Sistema</h1>
+      <h2>Login</h2>
+      
+      <% if (erro) { %>
+        <div class="alert alert-danger"><%= erro %></div>
+      <% } %>
+      
+      <form action="/login" method="POST">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="senha">Senha</label>
+          <input type="password" id="senha" name="senha" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Entrar</button>
+      </form>
+      
+      <p class="login-info">Use admin@exemplo.com / admin123 para entrar</p>
+    </div>
+  </div>
+</body>
+</html>

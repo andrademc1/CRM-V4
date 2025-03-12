@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - CRM</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <header class="main-header">
+      <div class="logo">
+        <h1>CRM Sistema</h1>
+      </div>
+      <div class="user-info">
+        <span>Bem-vindo, <%= usuario.nome %></span>
+        <a href="/logout" class="btn btn-small">Sair</a>
+      </div>
+    </header>
+    
+    <div class="dashboard-content">
+      <aside class="sidebar">
+        <nav>
+          <ul>
+            <li class="active"><a href="/dashboard">Dashboard</a></li>
+            <li><a href="#">Clientes</a></li>
+            <li><a href="#">Vendas</a></li>
+            <li><a href="#">Relatórios</a></li>
+            <li><a href="#">Configurações</a></li>
+          </ul>
+        </nav>
+      </aside>
+      
+      <main class="main-content">
+        <div class="page-header">
+          <h2>Dashboard</h2>
+        </div>
+        
+        <div class="dashboard-stats">
+          <div class="stat-card">
+            <h3>Clientes</h3>
+            <p class="stat-number"><%= clientes.length %></p>
+          </div>
+          
+          <div class="stat-card">
+            <h3>Vendas</h3>
+            <p class="stat-number">0</p>
+          </div>
+          
+          <div class="stat-card">
+            <h3>Tarefas</h3>
+            <p class="stat-number">0</p>
+          </div>
+          
+          <div class="stat-card">
+            <h3>Faturamento</h3>
+            <p class="stat-number">R$ 0,00</p>
+          </div>
+        </div>
+        
+        <div class="recent-section">
+          <h3>Clientes Recentes</h3>
+          
+          <% if (clientes && clientes.length > 0) { %>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Email</th>
+                  <th>Empresa</th>
+                  <th>Telefone</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% clientes.forEach(cliente => { %>
+                  <tr>
+                    <td><%= cliente.nome %></td>
+                    <td><%= cliente.email %></td>
+                    <td><%= cliente.empresa %></td>
+                    <td><%= cliente.telefone %></td>
+                    <td>
+                      <a href="#" class="btn btn-small">Ver</a>
+                      <a href="#" class="btn btn-small">Editar</a>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <p>Nenhum cliente cadastrado ainda.</p>
+            <a href="#" class="btn btn-primary">Adicionar Cliente</a>
+          <% } %>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
