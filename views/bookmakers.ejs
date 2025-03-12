@@ -52,7 +52,7 @@
               <tr>
                 <th>Status</th>
                 <th>Nome</th>
-                <th>Billing</th>
+                <th>Billing Accounts</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -67,13 +67,43 @@
                       </span>
                     </td>
                     <td><%= owner.nome %></td>
-                    <td class="actions">
-                      <button class="btn-delete" onclick="confirmarExclusao(<%= owner.id %>)">Excluir</button>
+                    <td>
+                      <% if (owner.billingAccounts && owner.billingAccounts.length > 0) { %>
+                        <% owner.billingAccounts.forEach((account, index) => { %>
+                          <div class="billing-account">
+                            <strong><%= account.billing_name %></strong>
+                            <% if (account.billing_vat) { %>
+                              <div>VAT: <%= account.billing_vat %></div>
+                            <% } %>
+                            <% if (account.billing_address1) { %>
+                              <div>Address: <%= account.billing_address1 %></div>
+                            <% } %>
+                            <% if (account.billing_city) { %>
+                              <div>City: <%= account.billing_city %></div>
+                            <% } %>
+                            <% if (account.billing_country) { %>
+                              <div class="country-with-flag">
+                                <% 
+                                  const countryData = countries.find(c => c.code === account.billing_country);
+                                  if (countryData) { 
+                                %>
+                                  <span class="country-flag"><%= countryData.flag %></span>
+                                  <%= countryData.name %>
+                                <% } else { %>
+                                  <%= account.billing_country %>
+                                <% } %>
+                              </div>
+                            <% } %>
+                          </div>
+                          <% if (index < owner.billingAccounts.length - 1) { %><hr><% } %>
+                        <% }); %>
+                      <% } else { %>
+                        <em>Sem contas de faturamento</em>
+                      <% } %>
                     </td>
-                    <td><%= owner.apply_billing ? 'Sim' : 'Não' %></td>
                     <td>
                       <a href="/bookmakers/editar-owner/<%= owner.id %>" class="btn btn-small">Editar</a>
-                      <a href="/bookmakers/view-owner/<%= owner.id %>" class="btn btn-small btn-primary">Ver</a>
+                      <button class="btn-delete" onclick="confirmarExclusao(<%= owner.id %>)">Excluir</button>
                     </td>
                   </tr>
                 <% }); %>
