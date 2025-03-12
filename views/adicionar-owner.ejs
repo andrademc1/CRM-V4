@@ -132,13 +132,11 @@
                 </div>
 
                 <div class="form-group">
-                  <label for="countrySearch">Country</label>
-                  <input type="hidden" id="countryCode" name="countryCode">
+                  <label for="countrySelector">Country:</label>
                   <div class="country-selector">
-                    <div id="selectedCountry" class="country-display">Select a country</div>
-                    <div class="country-search">
-                      <input type="text" id="countrySearch" placeholder="Search country...">
-                    </div>
+                    <div class="selected-country" id="selectedCountry">Select a country</div>
+                    <input type="text" id="countrySearch" class="country-search" placeholder="Search countries...">
+                    <input type="hidden" id="countryCode" name="countryCode">
                     <ul id="countryList" class="country-list"></ul>
                   </div>
                 </div>

@@ -209,7 +209,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const state = document.getElementById('billingState').value;
       const zipCode = document.getElementById('billingZipCode').value;
       const countryElement = document.getElementById('selectedCountry');
-      const country = countryElement ? countryElement.textContent : '';
+      const countryText = countryElement ? countryElement.textContent.trim() : '';
+      const country = countryText === 'Select a country' ? '' : countryText;
       const countryCode = document.getElementById('countryCode').value;
 
       // Validar campos obrigatórios
@@ -227,6 +228,8 @@ document.addEventListener('DOMContentLoaded', function() {
         city,
         state,
         zipCode,
+        country,
+        countryCode,
         country,
         countryCode
       };
