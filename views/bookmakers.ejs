@@ -42,6 +42,7 @@
 
         <div class="dashboard-actions">
           <a href="/bookmakers/adicionar-owner" class="btn btn-primary">Add Owner</a>
+          <a href="/bookmakers/adicionar-grupo" class="btn btn-primary">Add Group</a>
         </div>
 
         <div class="recent-section">
@@ -85,6 +86,45 @@
             </tbody>
           </table>
         </div>
+
+        <div class="recent-section">
+          <h3>Lista de Groups</h3>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Nome</th>
+                <th>Descrição</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (groups && groups.length > 0) { %>
+                <% groups.forEach(group => { %>
+                  <tr>
+                    <td>
+                      <% const statusClass = group.status === 'active' ? 'badge-success' : (group.status === 'suspended' ? 'badge-danger' : 'badge-secondary'); %>
+                      <span class="badge <%= statusClass %>">
+                        <%= group.status ? (group.status.charAt(0).toUpperCase() + group.status.slice(1)) : 'Indefinido' %>
+                      </span>
+                    </td>
+                    <td><%= group.nome %></td>
+                    <td><%= group.descricao %></td>
+                    <td>
+                      <a href="/bookmakers/editar-grupo/<%= group.id %>" class="btn btn-small">Editar</a>
+                      <button class="btn-delete" onclick="confirmarExclusaoGrupo(<%= group.id %>)">Excluir</button>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="4">Nenhum grupo cadastrado</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
       </main>
     </div>
   </div>
@@ -93,6 +133,12 @@
     function confirmarExclusao(ownerId) {
       if (confirm('Tem certeza que deseja excluir este owner?')) {
         window.location.href = `/bookmakers/excluir/${ownerId}`;
+      }
+    }
+    
+    function confirmarExclusaoGrupo(groupId) {
+      if (confirm('Tem certeza que deseja excluir este grupo?')) {
+        window.location.href = `/bookmakers/excluir-grupo/${groupId}`;
       }
     }
   </script>
