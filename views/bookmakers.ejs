@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -30,7 +31,51 @@
       </aside>
 
       <main class="main-content">
-        <!-- Conteúdo removido -->
+        <div class="page-header">
+          <h2>Gestão de Owners</h2>
+          <a href="/bookmakers/adicionar-owner" class="btn btn-primary">Add Owner</a>
+        </div>
+        
+        <% if (mensagem) { %>
+          <div class="alert alert-<%= mensagem.tipo %>">
+            <%= mensagem.texto %>
+          </div>
+        <% } %>
+        
+        <div class="recent-section">
+          <h3>Lista de Owners</h3>
+          
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Telefone</th>
+                <th>Empresa</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (owners && owners.length > 0) { %>
+                <% owners.forEach(owner => { %>
+                  <tr>
+                    <td><%= owner.nome %></td>
+                    <td><%= owner.email %></td>
+                    <td><%= owner.telefone %></td>
+                    <td><%= owner.empresa %></td>
+                    <td>
+                      <a href="/bookmakers/editar-owner/<%= owner.id %>" class="btn btn-small">Editar</a>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="5">Nenhum owner cadastrado.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
       </main>
     </div>
   </div>

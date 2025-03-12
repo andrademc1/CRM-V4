@@ -73,6 +73,19 @@ async function inicializarBancoDados() {
         data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // Criar tabela de owners
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS owners (
+        id SERIAL PRIMARY KEY,
+        nome VARCHAR(100) NOT NULL,
+        email VARCHAR(100),
+        telefone VARCHAR(20),
+        empresa VARCHAR(100),
+        observacoes TEXT,
+        data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
     // Inserir usuário padrão, se não existir
     const usuarioExistente = await client.query('SELECT * FROM usuarios WHERE email = $1', ['admin@exemplo.com']);
@@ -149,10 +162,73 @@ app.get('/dashboard', requireLogin, async (req, res) => {
 });
 
 // Rota para bookmakers
-app.get('/bookmakers', requireLogin, (req, res) => {
-  res.render('bookmakers', { 
-    usuario: req.session.usuarioLogado
+app.get('/bookmakers', requireLogin, async (req, res) => {
+  try {
+    const client = await getDbClient();
+    const result = await client.query('SELECT * FROM owners ORDER BY nome');
+    await client.end();
+    
+    res.render('bookmakers', { 
+      usuario: req.session.usuarioLogado,
+      owners: result.rows,
+      mensagem: req.session.mensagem
+    });
+    // Limpar mensagem da sessão após exibir
+    req.session.mensagem = null;
+  } catch (err) {
+    console.error('Erro ao carregar owners:', err);
+    res.render('bookmakers', { 
+      usuario: req.session.usuarioLogado,
+      owners: [],
+      mensagem: { tipo: 'erro', texto: 'Erro ao carregar owners' }
+    });
+  }
+});
+
+// Rota para formulário de adicionar owner
+app.get('/bookmakers/adicionar-owner', requireLogin, (req, res) => {
+  res.render('adicionar-owner', { 
+    usuario: req.session.usuarioLogado,
+    erro: null
   });
+});
+
+// Rota para processar adição de owner
+app.post('/bookmakers/adicionar-owner', requireLogin, async (req, res) => {
+  const { nome, email, telefone, empresa, observacoes } = req.body;
+  
+  if (!nome || !email || !telefone || !empresa) {
+    return res.render('adicionar-owner', { 
+      usuario: req.session.usuarioLogado,
+      erro: 'Os campos Nome, Email, Telefone e Empresa são obrigatórios'
+    });
+  }
+  
+  try {
+    const client = await getDbClient();
+    
+    // Inserir novo owner
+    await client.query(
+      'INSERT INTO owners (nome, email, telefone, empresa, observacoes) VALUES ($1, $2, $3, $4, $5)',
+      [nome, email, telefone, empresa, observacoes]
+    );
+    
+    await client.end();
+    
+    // Adicionar mensagem de sucesso à sessão
+    req.session.mensagem = {
+      tipo: 'sucesso',
+      texto: 'Owner adicionado com sucesso!'
+    };
+    
+    res.redirect('/bookmakers');
+  } catch (err) {
+    console.error('Erro ao adicionar owner:', err);
+    res.render('adicionar-owner', { 
+      usuario: req.session.usuarioLogado,
+      erro: 'Erro ao adicionar owner'
+    });
+  }
 });
 
 // Rota para users

@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adicionar Owner - CRM</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <header class="main-header">
+      <div class="logo">
+        <h1>CRM Sistema</h1>
+      </div>
+      <div class="user-info">
+        <span>Bem-vindo, <%= usuario.nome %></span>
+        <a href="/logout" class="btn btn-small">Sair</a>
+      </div>
+    </header>
+
+    <div class="dashboard-content">
+      <aside class="sidebar">
+        <nav>
+          <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li class="active"><a href="/bookmakers">Bookmakers</a></li>
+            <li><a href="/users">Users</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <div class="page-header">
+          <h2>Adicionar Novo Owner</h2>
+        </div>
+        
+        <% if (erro) { %>
+          <div class="alert alert-danger">
+            <%= erro %>
+          </div>
+        <% } %>
+        
+        <div class="form-container">
+          <form action="/bookmakers/adicionar-owner" method="POST">
+            <div class="form-group">
+              <label for="nome">Nome</label>
+              <input type="text" id="nome" name="nome" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="telefone">Telefone</label>
+              <input type="text" id="telefone" name="telefone" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="empresa">Empresa</label>
+              <input type="text" id="empresa" name="empresa" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="observacoes">Observações</label>
+              <textarea id="observacoes" name="observacoes" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Salvar</button>
+              <a href="/bookmakers" class="btn" style="background-color: #6c757d;">Cancelar</a>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
