@@ -51,9 +51,9 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th>Status</th>
+                <th>Logo</th>
                 <th>Nome</th>
-                <th>Billing</th>
+                <th>Status</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -62,19 +62,21 @@
                 <% owners.forEach(owner => { %>
                   <tr>
                     <td>
+                      <% if (owner.logo_url) { %>
+                        <img src="<%= owner.logo_url %>" alt="Logo" style="max-width: 50px; max-height: 50px;">
+                      <% } else { %>
+                        <span>Sem logo</span>
+                      <% } %>
+                    </td>
+                    <td><%= owner.nome %></td>
+                    <td>
                       <% const statusClass = owner.status === 'active' ? 'badge-success' : (owner.status === 'suspended' ? 'badge-danger' : 'badge-secondary'); %>
                       <span class="badge <%= statusClass %>">
                         <%= owner.status ? (owner.status.charAt(0).toUpperCase() + owner.status.slice(1)) : 'Indefinido' %>
                       </span>
                     </td>
-                    <td><%= owner.nome %></td>
                     <td class="actions">
                       <button class="btn-delete" onclick="confirmarExclusao(<%= owner.id %>)">Excluir</button>
-                    </td>
-                    <td><%= owner.apply_billing ? 'Sim' : 'Não' %></td>
-                    <td>
-                      <a href="/bookmakers/editar-owner/<%= owner.id %>" class="btn btn-small">Editar</a>
-                      <a href="/bookmakers/view-owner/<%= owner.id %>" class="btn btn-small btn-primary">Ver</a>
                     </td>
                   </tr>
                 <% }); %>
