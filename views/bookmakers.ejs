@@ -61,8 +61,9 @@
                 <% owners.forEach(owner => { %>
                   <tr>
                     <td>
-                      <span class="badge <%= owner.status === 'active' ? 'badge-success' : (owner.status === 'suspended' ? 'badge-danger' : 'badge-secondary') %>">
-                        <%= owner.status.charAt(0).toUpperCase() + owner.status.slice(1) %>
+                      <% const statusClass = owner.status === 'active' ? 'badge-success' : (owner.status === 'suspended' ? 'badge-danger' : 'badge-secondary'); %>
+                      <span class="badge <%= statusClass %>">
+                        <%= owner.status ? (owner.status.charAt(0).toUpperCase() + owner.status.slice(1)) : 'Indefinido' %>
                       </span>
                     </td>
                     <td><%= owner.nome %></td>
