@@ -1,5 +1,6 @@
 
-const countries = [
+// Definir array de países como uma variável global
+window.countries = [
   { code: "AD", name: "Andorra", flag: "🇦🇩" },
   { code: "AE", name: "United Arab Emirates", flag: "🇦🇪" },
   { code: "AF", name: "Afghanistan", flag: "🇦🇫" },
@@ -89,5 +90,6 @@ const countries = [
   { code: "UA", name: "Ukraine", flag: "🇺🇦" },
   { code: "US", name: "United States", flag: "🇺🇸" },
   { code: "UY", name: "Uruguay", flag: "🇺🇾" },
+  { code: "VE", name: "Venezuela", flag: "🇻🇪" },
   { code: "ZA", name: "South Africa", flag: "🇿🇦" }
 ];
