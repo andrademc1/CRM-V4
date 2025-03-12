@@ -1,21 +1,39 @@
-
 document.addEventListener('DOMContentLoaded', function() {
+  // Array para armazenar contas de faturamento salvas
+  const savedAccounts = [];
+  const savedBillingAccounts = document.getElementById('savedBillingAccounts');
+  const billingAccountsList = document.getElementById('billingAccountsList');
+
+  // Função para adicionar um cartão de conta visual à lista
+  function addAccountCard(account) {
+    const newAccountCard = document.createElement('div');
+    newAccountCard.classList.add('billing-account-card');
+    newAccountCard.innerHTML = `
+      <h3>${account.name}</h3>
+      <p>VAT: ${account.vat || 'N/A'}</p>
+      <p>Address: ${account.address1 || 'N/A'}</p>
+      <p>City: ${account.city || 'N/A'}, ${account.state || ''} ${account.zipCode || ''}</p>
+      <p>Country: ${account.country || 'N/A'}</p>
+    `;
+    billingAccountsList.appendChild(newAccountCard);
+  }
+
   // Inicializar Tab
   function openTab(tabName) {
     const tabContents = document.getElementsByClassName('tab-content');
     for (let i = 0; i < tabContents.length; i++) {
       tabContents[i].style.display = 'none';
     }
-    
+
     const tabLinks = document.getElementsByClassName('tab-link');
     for (let i = 0; i < tabLinks.length; i++) {
       tabLinks[i].classList.remove('active');
     }
-    
+
     document.getElementById(tabName).style.display = 'block';
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
   }
-  
+
   // Adicionar eventos de clique às tabs
   const tabLinks = document.getElementsByClassName('tab-link');
   for (let i = 0; i < tabLinks.length; i++) {
@@ -24,13 +42,13 @@ document.addEventListener('DOMContentLoaded', function() {
       openTab(tabId);
     });
   }
-  
+
   // Inicializar o seletor de países
   const countrySearchInput = document.getElementById('countrySearch');
   const countryList = document.getElementById('countryList');
   const selectedCountryDisplay = document.getElementById('selectedCountry');
   const countryCodeInput = document.getElementById('countryCode');
-  
+
   if (countrySearchInput && countryList) {
     // Popular a lista de países
     if (window.countries && Array.isArray(window.countries)) {
@@ -38,31 +56,38 @@ document.addEventListener('DOMContentLoaded', function() {
         const li = document.createElement('li');
         li.setAttribute('data-code', country.code);
         li.setAttribute('data-name', country.name);
-        li.textContent = country.name;
-        
+        li.textContent = `${country.flag} ${country.name}`;
+
         li.addEventListener('click', function() {
           const code = this.getAttribute('data-code');
           const name = this.getAttribute('data-name');
-          
+
           selectedCountryDisplay.textContent = name;
           countryCodeInput.value = code;
           countryList.style.display = 'none';
         });
-        
+
         countryList.appendChild(li);
       }
+    } else {
+      console.error('O array de países não está disponível.');
     }
-    
+
+    // Mostrar a lista quando clica no display do país
+    selectedCountryDisplay.addEventListener('click', function() {
+      countryList.style.display = 'block';
+    });
+
     // Mostrar a lista quando clica no input
     countrySearchInput.addEventListener('click', function() {
       countryList.style.display = 'block';
     });
-    
+
     // Filtrar a lista ao digitar
     countrySearchInput.addEventListener('input', function() {
       const searchValue = this.value.toLowerCase();
       const items = countryList.getElementsByTagName('li');
-      
+
       for (let i = 0; i < items.length; i++) {
         const countryName = items[i].getAttribute('data-name').toLowerCase();
         if (countryName.indexOf(searchValue) > -1) {
@@ -72,42 +97,88 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     });
-    
+
     // Fechar a lista quando clica fora
     document.addEventListener('click', function(e) {
-      if (e.target !== countrySearchInput && !countryList.contains(e.target)) {
+      if (e.target !== countrySearchInput && 
+          e.target !== selectedCountryDisplay && 
+          !countryList.contains(e.target)) {
         countryList.style.display = 'none';
       }
     });
   }
 
-  // Manipular o upload de logo
-  const logoInput = document.getElementById('ownerLogo');
-  const logoPreview = document.getElementById('logoPreview');
+  // Abrir a primeira tab por padrão
+  openTab('tabOwnerSettings');
 
-  if (logoInput && logoPreview) {
-    logoInput.addEventListener('change', function() {
-      const file = this.files[0];
+  // Upload de logotipo com pré-visualização
+  const logoInput = document.getElementById('ownerLogo');
+  if (logoInput) {
+    logoInput.addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      const preview = document.getElementById('logoPreview');
+
       if (file) {
         const reader = new FileReader();
+
         reader.onload = function(e) {
-          logoPreview.src = e.target.result;
-          logoPreview.style.display = 'block';
-        }
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        };
+
         reader.readAsDataURL(file);
+      } else {
+        preview.src = '';
+        preview.style.display = 'none';
       }
     });
   }
 
-  // Botões para gerenciar billing details
+  // Adicionar um campo oculto ao formulário no momento do envio
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      // Verificar se há contas salvas e criar um campo hidden para enviá-las
+      if (savedAccounts.length > 0) {
+        const hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.name = 'billingAccounts';
+        hiddenField.value = JSON.stringify(savedAccounts);
+        this.appendChild(hiddenField);
+        console.log('Enviando billing accounts:', savedAccounts);
+      }
+    });
+  }
+
+  // Gerenciar a visibilidade dos campos de detalhes de faturação
+  const billingRadios = document.querySelectorAll('input[name="applyBilling"]');
+  const billingDetailsSection = document.getElementById('billingDetailsSection');
+  const addAccountButtonSection = document.getElementById('addAccountButtonSection');
+  const addAccountButton = document.getElementById('addAccountButton');
+
+  if (billingRadios.length > 0) {
+    billingRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        if (this.value === 'yes') {
+          addAccountButtonSection.style.display = 'block';
+          billingDetailsSection.style.display = 'none';
+        } else {
+          addAccountButtonSection.style.display = 'none';
+          billingDetailsSection.style.display = 'block';
+        }
+      });
+    });
+  }
+
+  // Adicionar evento ao botão Add Account
+  if (addAccountButton) {
+    addAccountButton.addEventListener('click', function() {
+      billingDetailsSection.style.display = 'block';
+    });
+  }
+
+  // Evento para salvar detalhes de faturamento
   const saveBillingButton = document.getElementById('saveBillingButton');
-  const addMoreAccountButton = document.getElementById('addMoreAccountButton');
-  const savedBillingAccounts = document.getElementById('savedBillingAccounts');
-  const billingAccountsList = document.getElementById('billingAccountsList');
-
-  // Array para armazenar contas salvas
-  let savedAccounts = [];
-
   if (saveBillingButton) {
     saveBillingButton.addEventListener('click', function() {
       // Obter valores do formulário
@@ -154,157 +225,35 @@ document.addEventListener('DOMContentLoaded', function() {
         addAccountCard(accountData);
       }
 
-      // Limpar o formulário
-      clearBillingForm();
+      // Limpar formulário
+      document.getElementById('billingName').value = '';
+      document.getElementById('billingVat').value = '';
+      document.getElementById('billingAddress1').value = '';
+      document.getElementById('billingAddress2').value = '';
+      document.getElementById('billingCity').value = '';
+      document.getElementById('billingState').value = '';
+      document.getElementById('billingZipCode').value = '';
+      document.getElementById('selectedCountry').textContent = 'Select a country';
+      document.getElementById('countryCode').value = '';
 
-      alert('Billing details saved successfully!');
+      alert("Billing details saved!");
     });
   }
 
+  // Adicionar outra conta
+  const addMoreAccountButton = document.getElementById('addMoreAccountButton');
   if (addMoreAccountButton) {
     addMoreAccountButton.addEventListener('click', function() {
-      // Limpar os campos do formulário para adicionar uma nova conta
-      clearBillingForm();
-      alert('Form cleared. You can now add another account.');
-    });
-  }
-
-  // Função para adicionar um card visual para a conta
-  function addAccountCard(accountData) {
-    const card = document.createElement('div');
-    card.className = 'billing-account-card';
-
-    // Adicionar nome e VAT
-    const header = document.createElement('div');
-    header.className = 'card-header';
-
-    const title = document.createElement('h5');
-    title.textContent = accountData.name;
-    header.appendChild(title);
-
-    if (accountData.vat) {
-      const vatInfo = document.createElement('p');
-      vatInfo.textContent = `VAT: ${accountData.vat}`;
-      header.appendChild(vatInfo);
-    }
-
-    card.appendChild(header);
-
-    // Adicionar endereço
-    const addressSection = document.createElement('div');
-    addressSection.className = 'card-address';
-
-    let addressHTML = '';
-
-    if (accountData.address1) {
-      addressHTML += '<p>' + accountData.address1 + '</p>';
-    }
-
-    if (accountData.address2) {
-      addressHTML += '<p>' + accountData.address2 + '</p>';
-    }
-
-    let cityLine = '';
-    if (accountData.city) {
-      cityLine += accountData.city;
-    }
-    if (accountData.state) {
-      cityLine += cityLine ? ', ' + accountData.state : accountData.state;
-    }
-    if (accountData.zipCode) {
-      cityLine += cityLine ? ' ' + accountData.zipCode : accountData.zipCode;
-    }
-
-    if (cityLine) {
-      addressHTML += '<p>' + cityLine + '</p>';
-    }
-
-    if (accountData.country && accountData.country !== 'Select a country') {
-      addressHTML += '<p>' + accountData.country + '</p>';
-    }
-
-    if (addressHTML) {
-      addressSection.innerHTML = '<strong>Address:</strong>' + addressHTML;
-      card.appendChild(addressSection);
-    }
-
-    // Adicionar ao container de contas
-    billingAccountsList.appendChild(card);
-  }
-
-  // Função para limpar o formulário
-  function clearBillingForm() {
-    document.getElementById('billingName').value = '';
-    document.getElementById('billingVat').value = '';
-    document.getElementById('billingAddress1').value = '';
-    document.getElementById('billingAddress2').value = '';
-    document.getElementById('billingCity').value = '';
-    document.getElementById('billingState').value = '';
-    document.getElementById('billingZipCode').value = '';
-    document.getElementById('countryCode').value = '';
-    if (document.getElementById('selectedCountry')) {
+      // Limpar formulário para nova entrada
+      document.getElementById('billingName').value = '';
+      document.getElementById('billingVat').value = '';
+      document.getElementById('billingAddress1').value = '';
+      document.getElementById('billingAddress2').value = '';
+      document.getElementById('billingCity').value = '';
+      document.getElementById('billingState').value = '';
+      document.getElementById('billingZipCode').value = '';
       document.getElementById('selectedCountry').textContent = 'Select a country';
-    }
-  }
-
-  // Inicializar visualização da aba selecionada
-  openTab('tabOwnerSettings');
-
-  // Upload de logotipo com pré-visualização
-  document.getElementById('ownerLogo').addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    const preview = document.getElementById('logoPreview');
-
-    if (file) {
-      const reader = new FileReader();
-
-      reader.onload = function(e) {
-        preview.src = e.target.result;
-        preview.style.display = 'block';
-      };
-
-      reader.readAsDataURL(file);
-    } else {
-      preview.src = '';
-      preview.style.display = 'none';
-    }
-  });
-
-  // Adicionar um campo oculto ao formulário no momento do envio
-  document.querySelector('form').addEventListener('submit', function(e) {
-    // Verificar se há contas salvas e criar um campo hidden para enviá-las
-    if (savedAccounts.length > 0) {
-      const hiddenField = document.createElement('input');
-      hiddenField.type = 'hidden';
-      hiddenField.name = 'billingAccounts';
-      hiddenField.value = JSON.stringify(savedAccounts);
-      this.appendChild(hiddenField);
-      console.log('Enviando billing accounts:', savedAccounts);
-    }
-  });
-
-  // Gerenciar a visibilidade dos campos de detalhes de faturação
-  const billingRadios = document.querySelectorAll('input[name="applyBilling"]');
-  const billingDetailsSection = document.getElementById('billingDetailsSection');
-  const addAccountButtonSection = document.getElementById('addAccountButtonSection');
-  const addAccountButton = document.getElementById('addAccountButton');
-
-  billingRadios.forEach(radio => {
-    radio.addEventListener('change', function() {
-      if (this.value === 'yes') {
-        addAccountButtonSection.style.display = 'block';
-        billingDetailsSection.style.display = 'none';
-      } else {
-        addAccountButtonSection.style.display = 'none';
-        billingDetailsSection.style.display = 'none';
-      }
-    });
-  });
-
-  // Adicionar evento ao botão Add Account
-  if (addAccountButton) {
-    addAccountButton.addEventListener('click', function() {
-      billingDetailsSection.style.display = 'block';
+      document.getElementById('countryCode').value = '';
     });
   }
 });

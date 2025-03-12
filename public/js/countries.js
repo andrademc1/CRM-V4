@@ -54,7 +54,6 @@ const countries = [
   { code: "FR", name: "France", flag: "🇫🇷" },
   { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
   { code: "GR", name: "Greece", flag: "🇬🇷" },
-  { code: "HR", name: "Croatia", flag: "🇭🇷" },
   { code: "HU", name: "Hungary", flag: "🇭🇺" },
   { code: "ID", name: "Indonesia", flag: "🇮🇩" },
   { code: "IE", name: "Ireland", flag: "🇮🇪" },
@@ -85,14 +84,10 @@ const countries = [
   { code: "SA", name: "Saudi Arabia", flag: "🇸🇦" },
   { code: "SE", name: "Sweden", flag: "🇸🇪" },
   { code: "SG", name: "Singapore", flag: "🇸🇬" },
-  { code: "SI", name: "Slovenia", flag: "🇸🇮" },
-  { code: "SK", name: "Slovakia", flag: "🇸🇰" },
   { code: "TH", name: "Thailand", flag: "🇹🇭" },
   { code: "TR", name: "Turkey", flag: "🇹🇷" },
-  { code: "TW", name: "Taiwan", flag: "🇹🇼" },
   { code: "UA", name: "Ukraine", flag: "🇺🇦" },
   { code: "US", name: "United States", flag: "🇺🇸" },
   { code: "UY", name: "Uruguay", flag: "🇺🇾" },
-  { code: "VN", name: "Vietnam", flag: "🇻🇳" },
   { code: "ZA", name: "South Africa", flag: "🇿🇦" }
 ];
