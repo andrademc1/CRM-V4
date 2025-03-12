@@ -37,16 +37,27 @@ document.addEventListener('DOMContentLoaded', function() {
   // Gerenciar a visibilidade dos campos de detalhes de faturação
   const billingRadios = document.querySelectorAll('input[name="applyBilling"]');
   const billingDetailsSection = document.getElementById('billingDetailsSection');
+  const addAccountButtonSection = document.getElementById('addAccountButtonSection');
+  const addAccountButton = document.getElementById('addAccountButton');
   
   billingRadios.forEach(radio => {
     radio.addEventListener('change', function() {
       if (this.value === 'yes') {
-        billingDetailsSection.style.display = 'block';
+        addAccountButtonSection.style.display = 'block';
+        billingDetailsSection.style.display = 'none';
       } else {
+        addAccountButtonSection.style.display = 'none';
         billingDetailsSection.style.display = 'none';
       }
     });
   });
+  
+  // Adicionar evento ao botão Add Account
+  if (addAccountButton) {
+    addAccountButton.addEventListener('click', function() {
+      billingDetailsSection.style.display = 'block';
+    });
+  }
 
   // Inicializar o seletor de países
   const countrySearchInput = document.getElementById('countrySearch');
