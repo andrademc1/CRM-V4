@@ -95,9 +95,9 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th>Status</th>
+                <th>Logo</th>
                 <th>Nome</th>
-                <th>Descrição</th>
+                <th>Status</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -106,15 +106,20 @@
                 <% groups.forEach(group => { %>
                   <tr>
                     <td>
+                      <% if (group.logo_url) { %>
+                        <img src="<%= group.logo_url %>" alt="Logo" style="max-width: 50px; max-height: 50px;">
+                      <% } else { %>
+                        <span>Sem logo</span>
+                      <% } %>
+                    </td>
+                    <td><%= group.nome %></td>
+                    <td>
                       <% const statusClass = group.status === 'active' ? 'badge-success' : (group.status === 'suspended' ? 'badge-danger' : 'badge-secondary'); %>
                       <span class="badge <%= statusClass %>">
                         <%= group.status ? (group.status.charAt(0).toUpperCase() + group.status.slice(1)) : 'Indefinido' %>
                       </span>
                     </td>
-                    <td><%= group.nome %></td>
-                    <td><%= group.descricao %></td>
                     <td>
-                      <a href="/bookmakers/editar-grupo/<%= group.id %>" class="btn btn-small">Editar</a>
                       <button class="btn-delete" onclick="confirmarExclusaoGrupo(<%= group.id %>)">Excluir</button>
                     </td>
                   </tr>
@@ -137,7 +142,7 @@
         window.location.href = `/bookmakers/excluir/${ownerId}`;
       }
     }
-    
+
     function confirmarExclusaoGrupo(groupId) {
       if (confirm('Tem certeza que deseja excluir este grupo?')) {
         window.location.href = `/bookmakers/excluir-grupo/${groupId}`;
