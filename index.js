@@ -83,12 +83,6 @@ async function inicializarBancoDados() {
         nome VARCHAR(100) NOT NULL,
         status VARCHAR(20) DEFAULT 'active',
         logo_url TEXT,
-        apply_billing BOOLEAN DEFAULT false,
-        billing_address2 VARCHAR(200),
-        billing_city VARCHAR(100),
-        billing_state VARCHAR(100),
-        billing_zipcode VARCHAR(20),
-        billing_country VARCHAR(5),
         data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -290,24 +284,12 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
       `INSERT INTO owners (
         nome, 
         status, 
-        logo_url,
-        apply_billing,
-        billing_address2,
-        billing_city,
-        billing_state,
-        billing_zipcode,
-        billing_country
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+        logo_url
+      ) VALUES ($1, $2, $3) RETURNING id`,
       [
         nome, 
         ownerStatus || 'inactive', 
-        logoUrl,
-        applyBillingBool,
-        applyBillingBool ? billingAddress2 : null,
-        applyBillingBool ? billingCity : null,
-        applyBillingBool ? billingState : null,
-        applyBillingBool ? billingZipCode : null,
-        applyBillingBool ? countryCode : null
+        logoUrl
       ]
     );
     

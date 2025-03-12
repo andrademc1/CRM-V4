@@ -52,12 +52,6 @@ async function resetDatabase() {
         nome VARCHAR(100) NOT NULL,
         status VARCHAR(20) DEFAULT 'active',
         logo_url TEXT,
-        apply_billing BOOLEAN DEFAULT false,
-        billing_address2 VARCHAR(200),
-        billing_city VARCHAR(100),
-        billing_state VARCHAR(100),
-        billing_zipcode VARCHAR(20),
-        billing_country VARCHAR(5),
         data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
