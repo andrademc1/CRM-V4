@@ -46,6 +46,7 @@
           <div class="tab">
             <button class="tab-link active" data-tab="bookmakerSettings">Bookmaker Settings</button>
             <button class="tab-link" data-tab="bookmakerAccountSettings">Bookmaker Account Settings</button>
+            <button class="tab-link" data-tab="bookmakerDealSettings">Bookmaker Deal Settings</button>
           </div>
 
           <form action="/bookmakers/adicionar-bookmaker" method="POST" enctype="multipart/form-data">
@@ -169,6 +170,27 @@
 
               <!-- Input hidden para armazenar os dados das contas em formato JSON -->
               <input type="hidden" id="savedBookmakerAccountsData" name="savedBookmakerAccountsData">
+            </div>
+
+            <!-- Bookmaker Deal Settings Tab -->
+            <div id="bookmakerDealSettings" class="tab-content">
+              <div id="dealSettingsEmptyState" class="empty-state-message">
+                <p>Para configurar Deal Settings, primeiro crie contas na aba "Bookmaker Account Settings".</p>
+              </div>
+
+              <div id="dealSettingsContent" style="display: none;">
+                <!-- Aqui serão renderizadas as configurações de deal para cada conta -->
+                <h4>Deal Settings</h4>
+                <div id="dealSettingsTabs" class="account-deal-tabs">
+                  <!-- Aqui serão geradas as abas para cada conta -->
+                </div>
+                <div id="dealSettingsTabsContent">
+                  <!-- Aqui será renderizado o conteúdo para cada conta -->
+                </div>
+              </div>
+
+              <!-- Input hidden para armazenar os dados de deal settings em formato JSON -->
+              <input type="hidden" id="savedDealSettingsData" name="savedDealSettingsData">
             </div>
 
             <div class="form-actions">
@@ -687,7 +709,8 @@
             status: accountStatus.value,
             username: accountUsername.value,
             password: accountPassword.value,
-            countries: [...accountSelectedCountriesArray]
+            countries: [...accountSelectedCountriesArray],
+            deals: [] // Array para armazenar as configurações de deal
           };
 
           // Adicionar ao array de contas
@@ -702,6 +725,9 @@
           // Adicionar card visual para a conta
           addAccountCard(accountData, savedAccounts.length - 1);
 
+          // Atualizar a aba de Deal Settings
+          updateDealSettingsTab();
+
           // Limpar formulário
           ownerSelect.selectedIndex = 0;
           accountStatus.selectedIndex = 0;
@@ -715,6 +741,252 @@
 
           alert('Account details saved!');
         });
+      }
+
+      // Deal Settings - Gerenciar aba de configurações de deals
+      const dealSettingsEmptyState = document.getElementById('dealSettingsEmptyState');
+      const dealSettingsContent = document.getElementById('dealSettingsContent');
+      const dealSettingsTabs = document.getElementById('dealSettingsTabs');
+      const dealSettingsTabsContent = document.getElementById('dealSettingsTabsContent');
+      const savedDealSettingsData = document.getElementById('savedDealSettingsData');
+      
+      // Array para armazenar os deal settings
+      const dealSettings = [];
+
+      // Função para atualizar a aba de Deal Settings
+      function updateDealSettingsTab() {
+        if (savedAccounts.length === 0) {
+          // Se não houver contas, mostrar mensagem
+          dealSettingsEmptyState.style.display = 'block';
+          dealSettingsContent.style.display = 'none';
+          return;
+        }
+
+        // Se houver contas, esconder mensagem e mostrar conteúdo
+        dealSettingsEmptyState.style.display = 'none';
+        dealSettingsContent.style.display = 'block';
+
+        // Limpar tabs e conteúdo
+        dealSettingsTabs.innerHTML = '';
+        dealSettingsTabsContent.innerHTML = '';
+
+        // Criar uma aba e conteúdo para cada conta
+        savedAccounts.forEach((account, accountIndex) => {
+          // Criar aba
+          const tab = document.createElement('div');
+          tab.className = `account-tab ${accountIndex === 0 ? 'active' : ''}`;
+          tab.dataset.accountIndex = accountIndex;
+          tab.textContent = account.username;
+
+          tab.addEventListener('click', function() {
+            // Desativar todas as abas
+            const tabs = dealSettingsTabs.querySelectorAll('.account-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            // Ativar esta aba
+            this.classList.add('active');
+            
+            // Esconder todos os conteúdos
+            const contents = dealSettingsTabsContent.querySelectorAll('.deal-tab-content');
+            contents.forEach(c => c.classList.remove('active'));
+            
+            // Mostrar o conteúdo correspondente
+            const contentId = `dealContent-${this.dataset.accountIndex}`;
+            document.getElementById(contentId).classList.add('active');
+          });
+
+          dealSettingsTabs.appendChild(tab);
+
+          // Criar conteúdo da aba
+          const content = document.createElement('div');
+          content.className = `deal-tab-content ${accountIndex === 0 ? 'active' : ''}`;
+          content.id = `dealContent-${accountIndex}`;
+
+          // Adicionar opções para definir deal por account ou por geography
+          const countries = account.countries || [];
+          
+          let contentHtml = `
+            <div class="form-group">
+              <div class="deal-option-header">
+                <label>Como deseja aplicar as configurações de deal?</label>
+                <div class="radio-group">
+                  <div class="radio-option">
+                    <input type="radio" id="applyDealByAccount-${accountIndex}" name="applyDealBy-${accountIndex}" value="account" checked>
+                    <label for="applyDealByAccount-${accountIndex}">Por conta</label>
+                  </div>
+                  ${countries.length > 1 ? `
+                  <div class="radio-option">
+                    <input type="radio" id="applyDealByGeography-${accountIndex}" name="applyDealBy-${accountIndex}" value="geography">
+                    <label for="applyDealByGeography-${accountIndex}">Por geografia</label>
+                  </div>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- Deal Settings por conta -->
+            <div id="accountDealSection-${accountIndex}" class="account-deal-section">
+              <div class="form-group">
+                <label for="dealType-${accountIndex}">Deal Type:</label>
+                <select id="dealType-${accountIndex}" class="deal-type-select">
+                  <option value="">Select a Deal Type</option>
+                  <option value="revshare">Revenue Share</option>
+                  <option value="cpa">CPA</option>
+                  <option value="hybrid">Hybrid</option>
+                  <option value="fixed">Fixed Fee</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="dealDescription-${accountIndex}">Deal Description:</label>
+                <textarea id="dealDescription-${accountIndex}" class="deal-description-textarea" rows="3"></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" id="saveDealButton-${accountIndex}" class="btn btn-success save-deal-button" data-account-index="${accountIndex}" data-type="account">Save Deal Settings</button>
+              </div>
+            </div>`;
+
+          // Se tiver mais de um país, mostrar seção de deal por geografia
+          if (countries.length > 1) {
+            contentHtml += `
+            <!-- Deal Settings por geografia -->
+            <div id="geographyDealSection-${accountIndex}" class="geography-deal-section" style="display: none;">
+              <h4>Deal Settings por Geografia</h4>
+              <div id="geographyDealList-${accountIndex}" class="geography-deal-list">`;
+            
+            // Adicionar uma seção para cada país
+            countries.forEach((country, countryIndex) => {
+              contentHtml += `
+                <div class="geography-deal-item">
+                  <h5><span class="country-flag">${country.flag}</span> ${country.name}</h5>
+                  <div class="form-group">
+                    <label for="geoType-${accountIndex}-${countryIndex}">Deal Type:</label>
+                    <select id="geoType-${accountIndex}-${countryIndex}" class="deal-type-select">
+                      <option value="">Select a Deal Type</option>
+                      <option value="revshare">Revenue Share</option>
+                      <option value="cpa">CPA</option>
+                      <option value="hybrid">Hybrid</option>
+                      <option value="fixed">Fixed Fee</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="geoDescription-${accountIndex}-${countryIndex}">Deal Description:</label>
+                    <textarea id="geoDescription-${accountIndex}-${countryIndex}" class="deal-description-textarea" rows="3"></textarea>
+                  </div>
+                </div>`;
+            });
+
+            contentHtml += `
+              </div>
+              <div class="form-actions">
+                <button type="button" id="saveGeoDealButton-${accountIndex}" class="btn btn-success save-deal-button" data-account-index="${accountIndex}" data-type="geography">Save Geography Deals</button>
+              </div>
+            </div>`;
+          }
+
+          content.innerHTML = contentHtml;
+          dealSettingsTabsContent.appendChild(content);
+
+          // Se já existirem configurações de deal para esta conta, preencher os campos
+          if (account.deals && account.deals.length > 0) {
+            if (account.dealsByGeography) {
+              // Selecionar opção por geografia
+              document.getElementById(`applyDealByGeography-${accountIndex}`).checked = true;
+              document.getElementById(`accountDealSection-${accountIndex}`).style.display = 'none';
+              document.getElementById(`geographyDealSection-${accountIndex}`).style.display = 'block';
+              
+              // Preencher dados de cada geografia
+              account.deals.forEach(deal => {
+                if (deal.countryCode) {
+                  // Encontrar o índice do país
+                  const countryIndex = account.countries.findIndex(c => c.code === deal.countryCode);
+                  if (countryIndex !== -1) {
+                    document.getElementById(`geoType-${accountIndex}-${countryIndex}`).value = deal.type || '';
+                    document.getElementById(`geoDescription-${accountIndex}-${countryIndex}`).value = deal.description || '';
+                  }
+                }
+              });
+            } else {
+              // Deal por conta
+              const deal = account.deals[0];
+              document.getElementById(`dealType-${accountIndex}`).value = deal.type || '';
+              document.getElementById(`dealDescription-${accountIndex}`).value = deal.description || '';
+            }
+          }
+
+          // Adicionar event listeners para as opções de deal (por conta ou por geografia)
+          if (countries.length > 1) {
+            document.querySelector(`input[name="applyDealBy-${accountIndex}"]`).addEventListener('change', function() {
+              const byAccount = document.getElementById(`applyDealByAccount-${accountIndex}`).checked;
+              document.getElementById(`accountDealSection-${accountIndex}`).style.display = byAccount ? 'block' : 'none';
+              document.getElementById(`geographyDealSection-${accountIndex}`).style.display = byAccount ? 'none' : 'block';
+            });
+          }
+        });
+
+        // Adicionar event listeners para os botões de salvar
+        const saveButtons = document.querySelectorAll('.save-deal-button');
+        saveButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            const accountIndex = parseInt(this.dataset.accountIndex);
+            const dealType = this.dataset.type; // 'account' ou 'geography'
+            
+            if (dealType === 'account') {
+              // Salvar deal por conta
+              const type = document.getElementById(`dealType-${accountIndex}`).value;
+              const description = document.getElementById(`dealDescription-${accountIndex}`).value;
+              
+              // Atualizar o objeto da conta
+              savedAccounts[accountIndex].dealsByGeography = false;
+              savedAccounts[accountIndex].deals = [{
+                type,
+                description
+              }];
+              
+              alert('Deal settings saved for account!');
+            } else {
+              // Salvar deal por geografia
+              const countries = savedAccounts[accountIndex].countries || [];
+              const deals = [];
+              
+              countries.forEach((country, countryIndex) => {
+                const type = document.getElementById(`geoType-${accountIndex}-${countryIndex}`).value;
+                const description = document.getElementById(`geoDescription-${accountIndex}-${countryIndex}`).value;
+                
+                deals.push({
+                  countryCode: country.code,
+                  countryName: country.name,
+                  type,
+                  description
+                });
+              });
+              
+              // Atualizar o objeto da conta
+              savedAccounts[accountIndex].dealsByGeography = true;
+              savedAccounts[accountIndex].deals = deals;
+              
+              alert('Deal settings saved for all geographies!');
+            }
+            
+            // Atualizar o input hidden com os dados das contas
+            savedBookmakerAccountsData.value = JSON.stringify(savedAccounts);
+          });
+        });
+      }
+
+      // Função para remover uma conta
+      function removeAccount(index) {
+        if (confirm('Tem certeza que deseja excluir esta conta?')) {
+          savedAccounts.splice(index, 1);
+          // Atualizar o input hidden com os dados atualizados
+          savedBookmakerAccountsData.value = JSON.stringify(savedAccounts);
+          // Reconstruir a lista de contas
+          rebuildAccountsList();
+          // Atualizar a aba de Deal Settings
+          updateDealSettingsTab();
+        }
       }
     });
   </script>
@@ -770,6 +1042,86 @@
       padding: 5px 10px;
       border: 1px solid #ccc;
       border-radius: 4px;
+    }
+
+    /* Estilos para Deal Settings */
+    .empty-state-message {
+      text-align: center;
+      margin: 30px 0;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      border: 1px dashed #ddd;
+    }
+
+    .account-deal-tabs {
+      display: flex;
+      border-bottom: 1px solid #dee2e6;
+      margin-bottom: 20px;
+    }
+
+    .account-tab {
+      padding: 10px 15px;
+      margin-right: 5px;
+      border: 1px solid #dee2e6;
+      border-bottom: none;
+      border-radius: 5px 5px 0 0;
+      cursor: pointer;
+      background-color: #f8f9fa;
+    }
+
+    .account-tab.active {
+      background-color: #fff;
+      border-bottom: 2px solid #fff;
+      margin-bottom: -1px;
+      font-weight: bold;
+    }
+
+    .deal-tab-content {
+      display: none;
+      padding: 20px;
+      border: 1px solid #dee2e6;
+      border-top: none;
+      border-radius: 0 0 5px 5px;
+    }
+
+    .deal-tab-content.active {
+      display: block;
+    }
+
+    .geography-deal-section {
+      border: 1px solid #eee;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+
+    .deal-option-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .deal-option-header label {
+      margin-right: 15px;
+      margin-bottom: 0;
+    }
+
+    .geography-deal-item {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+
+    .geography-deal-item h5 {
+      margin-top: 0;
+      font-size: 16px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+      margin-bottom: 15px;
     }
   </style>
 </body>

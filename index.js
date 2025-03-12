@@ -560,15 +560,19 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
               status,
               username,
               password,
-              geographies
-            ) VALUES ($1, $2, $3, $4, $5, $6)`,
+              geographies,
+              deals_by_geography,
+              deals
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
             [
               bookmakerId,
               account.ownerId,
               account.status,
               account.username,
               account.password,
-              account.countries && account.countries.length > 0 ? JSON.stringify(account.countries) : null
+              account.countries && account.countries.length > 0 ? JSON.stringify(account.countries) : null,
+              account.dealsByGeography || false,
+              account.deals && account.deals.length > 0 ? JSON.stringify(account.deals) : null
             ]
           );
         }
