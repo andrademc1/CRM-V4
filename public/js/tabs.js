@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
           billingDetailsSection.style.display = 'none';
         } else {
           addAccountButtonSection.style.display = 'none';
-          billingDetailsSection.style.display = 'block';
+          billingDetailsSection.style.display = 'none'; // Ocultar os campos quando 'No' for selecionado
         }
       });
     });
