@@ -156,10 +156,83 @@ app.get('/bookmakers', requireLogin, (req, res) => {
 });
 
 // Rota para users
-app.get('/users', requireLogin, (req, res) => {
-  res.render('users', { 
-    usuario: req.session.usuarioLogado
+app.get('/users', requireLogin, async (req, res) => {
+  try {
+    const client = await getDbClient();
+    const result = await client.query('SELECT * FROM usuarios ORDER BY nome');
+    await client.end();
+    
+    res.render('users', { 
+      usuario: req.session.usuarioLogado,
+      usuarios: result.rows,
+      mensagem: req.session.mensagem
+    });
+    // Limpar mensagem da sessão após exibir
+    req.session.mensagem = null;
+  } catch (err) {
+    console.error('Erro ao carregar usuários:', err);
+    res.render('users', { 
+      usuario: req.session.usuarioLogado,
+      usuarios: [],
+      mensagem: { tipo: 'erro', texto: 'Erro ao carregar usuários' }
+    });
+  }
+});
+
+// Rota para formulário de adicionar usuário
+app.get('/users/adicionar', requireLogin, (req, res) => {
+  res.render('adicionar-user', { 
+    usuario: req.session.usuarioLogado,
+    erro: null
   });
+});
+
+// Rota para processar adição de usuário
+app.post('/users/adicionar', requireLogin, async (req, res) => {
+  const { nome, email, senha } = req.body;
+  
+  if (!nome || !email || !senha) {
+    return res.render('adicionar-user', { 
+      usuario: req.session.usuarioLogado,
+      erro: 'Todos os campos são obrigatórios'
+    });
+  }
+  
+  try {
+    const client = await getDbClient();
+    
+    // Verificar se e-mail já existe
+    const verificacao = await client.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+    if (verificacao.rows.length > 0) {
+      await client.end();
+      return res.render('adicionar-user', { 
+        usuario: req.session.usuarioLogado,
+        erro: 'Este e-mail já está em uso'
+      });
+    }
+    
+    // Inserir novo usuário
+    await client.query(
+      'INSERT INTO usuarios (nome, email, senha) VALUES ($1, $2, $3)',
+      [nome, email, senha]
+    );
+    
+    await client.end();
+    
+    // Adicionar mensagem de sucesso à sessão
+    req.session.mensagem = {
+      tipo: 'sucesso',
+      texto: 'Usuário adicionado com sucesso!'
+    };
+    
+    res.redirect('/users');
+  } catch (err) {
+    console.error('Erro ao adicionar usuário:', err);
+    res.render('adicionar-user', { 
+      usuario: req.session.usuarioLogado,
+      erro: 'Erro ao adicionar usuário'
+    });
+  }
 });
 
 app.get('/logout', (req, res) => {

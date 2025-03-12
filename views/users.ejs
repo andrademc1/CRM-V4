@@ -36,8 +36,14 @@
         </div>
         
         <div class="dashboard-actions">
-          <a href="#" class="btn btn-primary">Adicionar User</a>
+          <a href="/users/adicionar" class="btn btn-primary">Adicionar User</a>
         </div>
+        
+        <% if (typeof mensagem !== 'undefined' && mensagem) { %>
+          <div class="alert alert-<%= mensagem.tipo === 'sucesso' ? 'success' : 'danger' %>">
+            <%= mensagem.texto %>
+          </div>
+        <% } %>
         
         <div class="recent-section">
           <h3>Lista de Users</h3>
@@ -52,15 +58,23 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Administrador</td>
-                <td>admin@exemplo.com</td>
-                <td>-</td>
-                <td>
-                  <a href="#" class="btn btn-small">Ver</a>
-                  <a href="#" class="btn btn-small">Editar</a>
-                </td>
-              </tr>
+              <% if (typeof usuarios !== 'undefined' && usuarios.length > 0) { %>
+                <% usuarios.forEach(user => { %>
+                  <tr>
+                    <td><%= user.nome %></td>
+                    <td><%= user.email %></td>
+                    <td><%= user.data_criacao ? new Date(user.data_criacao).toLocaleDateString('pt-BR') : '-' %></td>
+                    <td>
+                      <a href="/users/ver/<%= user.id %>" class="btn btn-small">Ver</a>
+                      <a href="/users/editar/<%= user.id %>" class="btn btn-small">Editar</a>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="4" style="text-align: center;">Nenhum usuário encontrado</td>
+                </tr>
+              <% } %>
             </tbody>
           </table>
         </div>

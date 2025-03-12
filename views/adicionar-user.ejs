@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adicionar Usuário - CRM</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <header class="main-header">
+      <div class="logo">
+        <h1>CRM Sistema</h1>
+      </div>
+      <div class="user-info">
+        <span>Bem-vindo, <%= usuario.nome %></span>
+        <a href="/logout" class="btn btn-small">Sair</a>
+      </div>
+    </header>
+    
+    <div class="dashboard-content">
+      <aside class="sidebar">
+        <nav>
+          <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/bookmakers">Bookmakers</a></li>
+            <li class="active"><a href="/users">Users</a></li>
+          </ul>
+        </nav>
+      </aside>
+      
+      <main class="main-content">
+        <div class="page-header">
+          <h2>Adicionar Usuário</h2>
+          <a href="/users" class="btn">Voltar</a>
+        </div>
+        
+        <% if (erro) { %>
+          <div class="alert alert-danger"><%= erro %></div>
+        <% } %>
+        
+        <div class="form-container">
+          <form action="/users/adicionar" method="POST">
+            <div class="form-group">
+              <label for="nome">Nome:</label>
+              <input type="text" id="nome" name="nome" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Email:</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="senha">Senha:</label>
+              <input type="password" id="senha" name="senha" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Salvar</button>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
