@@ -1,4 +1,3 @@
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -66,7 +65,7 @@ async function getDbClient() {
   const client = new Client({
     connectionString: process.env.DATABASE_URL,
   });
-  
+
   try {
     await client.connect();
     console.log('Conexão ao banco de dados realizada com sucesso.');
@@ -86,7 +85,7 @@ async function inicializarBancoDados() {
 
   try {
     const client = await getDbClient();
-    
+
     // Criar tabela de usuários
     await client.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
@@ -97,7 +96,7 @@ async function inicializarBancoDados() {
         data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    
+
     // Criar tabela de clientes
     await client.query(`
       CREATE TABLE IF NOT EXISTS clientes (
@@ -110,7 +109,7 @@ async function inicializarBancoDados() {
         data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    
+
     // Criar tabela de owners
     await client.query(`
       CREATE TABLE IF NOT EXISTS owners (
@@ -121,7 +120,7 @@ async function inicializarBancoDados() {
         data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    
+
     // Criar tabela de contas de faturamento de owners
     await client.query(`
       CREATE TABLE IF NOT EXISTS owner_billing_accounts (
@@ -138,7 +137,7 @@ async function inicializarBancoDados() {
         data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    
+
     // Criar tabela de grupos
     await client.query(`
       CREATE TABLE IF NOT EXISTS groups (
@@ -149,7 +148,7 @@ async function inicializarBancoDados() {
         data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    
+
     // Verificar se a coluna status existe e adicionar se necessário
     try {
       const columnCheck = await client.query(`
@@ -157,7 +156,7 @@ async function inicializarBancoDados() {
         FROM information_schema.columns 
         WHERE table_name = 'owners' AND column_name = 'status'
       `);
-      
+
       if (columnCheck.rows.length === 0) {
         console.log('Adicionando coluna "status" à tabela owners...');
         await client.query(`
@@ -200,12 +199,12 @@ app.get('/login', (req, res) => {
 
 app.post('/login', async (req, res) => {
   const { email, senha } = req.body;
-  
+
   try {
     const client = await getDbClient();
     const result = await client.query('SELECT * FROM usuarios WHERE email = $1 AND senha = $2', [email, senha]);
     await client.end();
-    
+
     if (result.rows.length > 0) {
       const usuario = result.rows[0];
       req.session.usuarioLogado = {
@@ -228,7 +227,7 @@ app.get('/dashboard', requireLogin, async (req, res) => {
     const client = await getDbClient();
     const result = await client.query('SELECT * FROM clientes ORDER BY data_criacao DESC LIMIT 10');
     await client.end();
-    
+
     res.render('dashboard', { 
       usuario: req.session.usuarioLogado,
       clientes: result.rows
@@ -249,7 +248,7 @@ app.get('/bookmakers', requireLogin, async (req, res) => {
     const client = await getDbClient();
     const ownersResult = await client.query('SELECT * FROM owners ORDER BY nome');
     const groupsResult = await client.query('SELECT * FROM groups ORDER BY nome');
-    
+
     // Verificar se a tabela bookmakers existe
     const bookmakerTableExists = await client.query(`
       SELECT EXISTS (
@@ -257,7 +256,7 @@ app.get('/bookmakers', requireLogin, async (req, res) => {
         WHERE table_name = 'bookmakers'
       );
     `);
-    
+
     let bookmakers = [];
     if (bookmakerTableExists.rows[0].exists) {
       // Buscar bookmakers com nome do grupo
@@ -269,7 +268,7 @@ app.get('/bookmakers', requireLogin, async (req, res) => {
       `);
       bookmakers = bookmakersResult.rows;
     }
-    
+
     // Para cada owner, recuperar suas contas de faturamento
     for (const owner of ownersResult.rows) {
       const billingAccountsResult = await client.query(
@@ -278,9 +277,9 @@ app.get('/bookmakers', requireLogin, async (req, res) => {
       );
       owner.billingAccounts = billingAccountsResult.rows;
     }
-    
+
     await client.end();
-    
+
     // Importar o array de países para usar na renderização
     const countriesPath = path.join(__dirname, 'public', 'js', 'countries.js');
     let countries = [];
@@ -296,7 +295,7 @@ app.get('/bookmakers', requireLogin, async (req, res) => {
     } catch (err) {
       console.error('Erro ao ler arquivo de países:', err);
     }
-    
+
     res.render('bookmakers', { 
       usuario: req.session.usuarioLogado,
       owners: ownersResult.rows,
@@ -330,7 +329,7 @@ app.get('/bookmakers/adicionar-owner', requireLogin, (req, res) => {
 // Rota para processar adição de owner
 app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo'), async (req, res) => {
   console.log('Dados do formulário:', req.body);
-  
+
   const { 
     nome, 
     ownerStatus,
@@ -346,27 +345,27 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
     // Novos campos para billing accounts (serão enviados pelo JavaScript)
     billingAccounts
   } = req.body;
-  
+
   if (!nome || nome.trim() === '') {
     return res.render('adicionar-owner', { 
       usuario: req.session.usuarioLogado,
       erro: 'O campo Nome é obrigatório'
     });
   }
-  
+
   // Verificar se está aplicando detalhes de faturamento
   const applyBillingBool = applyBilling === 'yes';
-  
+
   try {
     const client = await getDbClient();
-    
+
     // Processar upload de logo
     let logoUrl = '';
     if (req.file) {
       logoUrl = `/uploads/${req.file.filename}`;
       console.log('Logo URL:', logoUrl);
     }
-    
+
     // Inserir novo owner
     const ownerResult = await client.query(
       `INSERT INTO owners (
@@ -380,14 +379,14 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
         logoUrl
       ]
     );
-    
+
     // Verificar se o usuário selecionou "yes" para Apply Billing
     if (applyBillingBool && billingAccounts) {
       try {
         console.log('Dados recebidos:', billingAccounts);
         const accounts = JSON.parse(billingAccounts);
         console.log(`Recebidos ${accounts.length} billing accounts adicionais:`, accounts);
-        
+
         // Inserir as contas adicionais na tabela owner_billing_accounts
         for (const account of accounts) {
           console.log('Processando conta:', account);
@@ -416,15 +415,15 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
     } else {
       console.log('Opção Apply Billing = No ou nenhuma conta de faturamento recebida');
     }
-    
+
     await client.end();
-    
+
     // Adicionar mensagem de sucesso à sessão
     req.session.mensagem = {
       tipo: 'sucesso',
       texto: 'Owner adicionado com sucesso!'
     };
-    
+
     res.redirect('/bookmakers');
   } catch (err) {
     console.error('Erro ao adicionar owner:', err);
@@ -438,23 +437,23 @@ app.post('/bookmakers/adicionar-owner', requireLogin, upload.single('ownerLogo')
 // Rota para excluir owner
 app.get('/bookmakers/excluir/:id', requireLogin, async (req, res) => {
   const ownerId = req.params.id;
-  
+
   try {
     const client = await getDbClient();
-    
+
     // Primeiro, excluir as contas de faturamento relacionadas
     await client.query('DELETE FROM owner_billing_accounts WHERE owner_id = $1', [ownerId]);
-    
+
     // Depois, excluir o owner
     await client.query('DELETE FROM owners WHERE id = $1', [ownerId]);
-    
+
     await client.end();
-    
+
     req.session.mensagem = {
       tipo: 'sucesso',
       texto: 'Owner excluído com sucesso!'
     };
-    
+
     res.redirect('/bookmakers');
   } catch (err) {
     console.error('Erro ao excluir owner:', err);
@@ -480,7 +479,7 @@ app.get('/bookmakers/adicionar-bookmaker', requireLogin, async (req, res) => {
     const client = await getDbClient();
     const groupsResult = await client.query('SELECT id, nome FROM groups WHERE status = $1 ORDER BY nome', ['active']);
     await client.end();
-    
+
     res.render('adicionar-bookmaker', { 
       usuario: req.session.usuarioLogado,
       groups: groupsResult.rows,
@@ -507,26 +506,26 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
     savedBookmakerAccountsData,
     savedBookmakerDealsData
   } = req.body;
-  
+
   if (!nome || nome.trim() === '') {
     return res.render('adicionar-bookmaker', { 
       usuario: req.session.usuarioLogado,
       erro: 'O campo Nome é obrigatório'
     });
   }
-  
+
   try {
     const client = await getDbClient();
-    
+
     // Buscar grupos novamente para o caso de erro e precisar renderizar o formulário
     const groupsResult = await client.query('SELECT id, nome FROM groups WHERE status = $1 ORDER BY nome', ['active']);
-    
+
     // Processar upload de logo
     let logoUrl = '';
     if (req.file) {
       logoUrl = `/uploads/${req.file.filename}`;
     }
-    
+
     // Inserir novo bookmaker
     const bookmakerResult = await client.query(
       `INSERT INTO bookmakers (
@@ -546,13 +545,13 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
         selectedCountriesData ? selectedCountriesData : null
       ]
     );
-    
+
     // Processar contas do bookmaker
     if (savedBookmakerAccountsData) {
       try {
         const accounts = JSON.parse(savedBookmakerAccountsData);
         const bookmakerId = bookmakerResult.rows[0].id;
-        
+
         for (const account of accounts) {
           await client.query(
             `INSERT INTO bookmaker_accounts (
@@ -577,24 +576,24 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
         console.error('Erro ao processar contas do bookmaker:', e);
       }
     }
-    
+
     await client.end();
-    
+
     // Adicionar mensagem de sucesso à sessão
     req.session.mensagem = {
       tipo: 'sucesso',
       texto: 'Bookmaker adicionado com sucesso!'
     };
-    
+
     res.redirect('/bookmakers');
   } catch (err) {
     console.error('Erro ao adicionar bookmaker:', err);
-    
+
     // Buscar grupos novamente para renderizar o formulário com erro
     const client = await getDbClient();
     const groupsResult = await client.query('SELECT id, nome FROM groups WHERE status = $1 ORDER BY nome', ['active']);
     await client.end();
-    
+
     res.render('adicionar-bookmaker', { 
       usuario: req.session.usuarioLogado,
       groups: groupsResult.rows,
@@ -615,26 +614,26 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
     applyBilling,
     billingAccounts
   } = req.body;
-  
+
   console.log('Dados do formulário:', req.body);
-  
+
   if (!nome || nome.trim() === '') {
     return res.render('adicionar-grupo', { 
       usuario: req.session.usuarioLogado,
       erro: 'O campo Nome é obrigatório'
     });
   }
-  
+
   try {
     const client = await getDbClient();
-    
+
     // Processar upload de logo
     let logoUrl = '';
     if (req.file) {
       logoUrl = `/uploads/${req.file.filename}`;
       console.log('Logo URL:', logoUrl);
     }
-    
+
     // Verificar se a tabela groups tem as colunas necessárias
     try {
       const columnCheck = await client.query(`
@@ -642,34 +641,34 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
         FROM information_schema.columns 
         WHERE table_name = 'groups' AND column_name IN ('logo_url', 'group_url', 'affiliate_url')
       `);
-      
+
       // Se alguma coluna estiver faltando, adicioná-la
       const existingColumns = columnCheck.rows.map(row => row.column_name);
-      
+
       if (!existingColumns.includes('logo_url')) {
         await client.query(`ALTER TABLE groups ADD COLUMN logo_url TEXT`);
       }
-      
+
       if (!existingColumns.includes('group_url')) {
         await client.query(`ALTER TABLE groups ADD COLUMN group_url TEXT`);
       }
-      
+
       if (!existingColumns.includes('affiliate_url')) {
         await client.query(`ALTER TABLE groups ADD COLUMN affiliate_url TEXT`);
       }
     } catch (err) {
       console.error('Erro ao verificar/adicionar colunas à tabela groups:', err);
     }
-    
+
     // Inserir novo grupo
     const groupResult = await client.query(
       `INSERT INTO groups (nome, status, logo_url, group_url, affiliate_url) 
        VALUES ($1, $2, $3, $4, $5) RETURNING id`,
       [nome, status || 'active', logoUrl, groupUrl || '', groupAffiliateUrl || '']
     );
-    
+
     const groupId = groupResult.rows[0].id;
-    
+
     // Verificar se o usuário selecionou "yes" para Apply Account
     if (applyAccount === 'yes' && savedAccountsData) {
       try {
@@ -680,9 +679,9 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
             WHERE table_name = 'group_accounts'
           );
         `);
-        
+
         const tableExists = tableCheck.rows[0].exists;
-        
+
         // Criar tabela de contas de grupo se não existir
         if (!tableExists) {
           await client.query(`
@@ -698,10 +697,10 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
           `);
           console.log('Tabela group_accounts criada.');
         }
-        
+
         console.log('Processando contas do grupo:', savedAccountsData);
         const accounts = JSON.parse(savedAccountsData);
-        
+
         // Inserir contas na tabela group_accounts
         for (const account of accounts) {
           await client.query(
@@ -722,7 +721,7 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
         console.error('Erro ao processar contas do grupo:', e, e.stack);
       }
     }
-    
+
     // Verificar se o usuário selecionou "yes" para Apply Billing
     if (applyBilling === 'yes' && billingAccounts) {
       try {
@@ -733,9 +732,9 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
             WHERE table_name = 'group_billing_accounts'
           );
         `);
-        
+
         const tableExists = tableCheck.rows[0].exists;
-        
+
         // Criar tabela de contas de faturamento de grupo se não existir
         if (!tableExists) {
           await client.query(`
@@ -756,10 +755,10 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
           `);
           console.log('Tabela group_billing_accounts criada.');
         }
-        
+
         console.log('Processando contas de faturamento do grupo:', billingAccounts);
         const accounts = JSON.parse(billingAccounts);
-        
+
         // Inserir contas na tabela group_billing_accounts
         for (const account of accounts) {
           await client.query(
@@ -786,15 +785,15 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
         console.error('Erro ao processar contas de faturamento do grupo:', e, e.stack);
       }
     }
-    
+
     await client.end();
-    
+
     // Adicionar mensagem de sucesso à sessão
     req.session.mensagem = {
       tipo: 'sucesso',
       texto: 'Grupo adicionado com sucesso!'
     };
-    
+
     res.redirect('/bookmakers');
   } catch (err) {
     console.error('Erro ao adicionar grupo:', err);
@@ -808,20 +807,20 @@ app.post('/bookmakers/adicionar-grupo', requireLogin, upload.single('groupLogo')
 // Rota para excluir grupo
 app.get('/bookmakers/excluir-grupo/:id', requireLogin, async (req, res) => {
   const groupId = req.params.id;
-  
+
   try {
     const client = await getDbClient();
-    
+
     // Excluir o grupo
     await client.query('DELETE FROM groups WHERE id = $1', [groupId]);
-    
+
     await client.end();
-    
+
     req.session.mensagem = {
       tipo: 'sucesso',
       texto: 'Grupo excluído com sucesso!'
     };
-    
+
     res.redirect('/bookmakers');
   } catch (err) {
     console.error('Erro ao excluir grupo:', err);
@@ -836,20 +835,20 @@ app.get('/bookmakers/excluir-grupo/:id', requireLogin, async (req, res) => {
 // Rota para excluir bookmaker
 app.get('/bookmakers/excluir-bookmaker/:id', requireLogin, async (req, res) => {
   const bookmakerId = req.params.id;
-  
+
   try {
     const client = await getDbClient();
-    
+
     // Excluir o bookmaker
     await client.query('DELETE FROM bookmakers WHERE id = $1', [bookmakerId]);
-    
+
     await client.end();
-    
+
     req.session.mensagem = {
       tipo: 'sucesso',
       texto: 'Bookmaker excluído com sucesso!'
     };
-    
+
     res.redirect('/bookmakers');
   } catch (err) {
     console.error('Erro ao excluir bookmaker:', err);
@@ -867,7 +866,7 @@ app.get('/users', requireLogin, async (req, res) => {
     const client = await getDbClient();
     const result = await client.query('SELECT * FROM usuarios ORDER BY nome');
     await client.end();
-    
+
     res.render('users', { 
       usuario: req.session.usuarioLogado,
       usuarios: result.rows,
@@ -891,7 +890,7 @@ app.get('/api/owners', requireLogin, async (req, res) => {
     const client = await getDbClient();
     const result = await client.query('SELECT id, nome FROM owners ORDER BY nome');
     await client.end();
-    
+
     res.json(result.rows);
   } catch (err) {
     console.error('Erro ao obter owners:', err);
@@ -902,10 +901,10 @@ app.get('/api/owners', requireLogin, async (req, res) => {
 // Rota API para obter contas associadas a um grupo
 app.get('/api/groups/:id/accounts', requireLogin, async (req, res) => {
   const groupId = req.params.id;
-  
+
   try {
     const client = await getDbClient();
-    
+
     // Verificar se a tabela group_accounts existe
     const tableCheck = await client.query(`
       SELECT EXISTS (
@@ -913,14 +912,14 @@ app.get('/api/groups/:id/accounts', requireLogin, async (req, res) => {
         WHERE table_name = 'group_accounts'
       );
     `);
-    
+
     const tableExists = tableCheck.rows[0].exists;
-    
+
     if (!tableExists) {
       await client.end();
       return res.json({ account: null });
     }
-    
+
     // Buscar a primeira conta associada ao grupo
     const result = await client.query(`
       SELECT ga.*, o.nome as owner_name
@@ -930,9 +929,9 @@ app.get('/api/groups/:id/accounts', requireLogin, async (req, res) => {
       ORDER BY ga.id
       LIMIT 1
     `, [groupId]);
-    
+
     await client.end();
-    
+
     if (result.rows.length > 0) {
       res.json({ account: result.rows[0] });
     } else {
@@ -957,17 +956,17 @@ app.get('/users/adicionar', requireLogin, (req, res) => {
 // Rota para processar adição de usuário
 app.post('/users/adicionar', requireLogin, async (req, res) => {
   const { nome, email, senha } = req.body;
-  
+
   if (!nome || !email || !senha) {
     return res.render('adicionar-user', { 
       usuario: req.session.usuarioLogado,
       erro: 'Todos os campos são obrigatórios'
     });
   }
-  
+
   try {
     const client = await getDbClient();
-    
+
     // Verificar se e-mail já existe
     const verificacao = await client.query('SELECT * FROM usuarios WHERE email = $1', [email]);
     if (verificacao.rows.length > 0) {
@@ -977,21 +976,21 @@ app.post('/users/adicionar', requireLogin, async (req, res) => {
         erro: 'Este e-mail já está em uso'
       });
     }
-    
+
     // Inserir novo usuário
     await client.query(
       'INSERT INTO usuarios (nome, email, senha) VALUES ($1, $2, $3)',
       [nome, email, senha]
     );
-    
+
     await client.end();
-    
+
     // Adicionar mensagem de sucesso à sessão
     req.session.mensagem = {
       tipo: 'sucesso',
       texto: 'Usuário adicionado com sucesso!'
     };
-    
+
     res.redirect('/users');
   } catch (err) {
     console.error('Erro ao adicionar usuário:', err);
@@ -1005,6 +1004,132 @@ app.post('/users/adicionar', requireLogin, async (req, res) => {
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/login');
+});
+
+// Rota para salvar configurações de deal de bookmaker
+app.post('/bookmakers/salvar-deal', requireLogin, async (req, res) => {
+  try {
+    const { 
+      bookmaker_id, 
+      deal_type, 
+      deal_values,
+      default_deal,
+      geographies
+    } = req.body;
+
+    const client = await getDbClient();
+
+    // Verificar se já existe um deal para este bookmaker
+    const dealCheck = await client.query(
+      'SELECT id FROM bookmaker_deals WHERE bookmaker_id = $1',
+      [bookmaker_id]
+    );
+
+    let dealId;
+
+    if (dealCheck.rows.length > 0) {
+      // Atualizar deal existente
+      dealId = dealCheck.rows[0].id;
+      await client.query(
+        `UPDATE bookmaker_deals 
+         SET deal_type = $1, deal_values = $2, default_deal = $3, geographies = $4
+         WHERE id = $5`,
+        [deal_type, JSON.stringify(deal_values), default_deal === 'true', JSON.stringify(geographies), dealId]
+      );
+    } else {
+      // Criar novo deal
+      const result = await client.query(
+        `INSERT INTO bookmaker_deals 
+         (bookmaker_id, deal_type, deal_values, default_deal, geographies)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        [bookmaker_id, deal_type, JSON.stringify(deal_values), default_deal === 'true', JSON.stringify(geographies)]
+      );
+      dealId = result.rows[0].id;
+    }
+
+    await client.end();
+
+    req.session.mensagem = {
+      tipo: 'sucesso',
+      texto: 'Configurações de deal salvas com sucesso!'
+    };
+
+    res.json({ success: true, dealId });
+  } catch (err) {
+    console.error('Erro ao salvar configurações de deal:', err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro ao salvar configurações de deal: ' + err.message 
+    });
+  }
+});
+
+// Rota para salvar deals de bookmaker em lote
+app.post('/bookmakers/salvar-deals-lote', requireLogin, async (req, res) => {
+  try {
+    const { bookmaker_id, deals } = req.body;
+
+    if (!bookmaker_id || !deals || !Array.isArray(deals)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Dados inválidos. Bookmaker ID e array de deals são obrigatórios.'
+      });
+    }
+
+    const client = await getDbClient();
+
+    // Limpar deals existentes para este bookmaker
+    await client.query('DELETE FROM bookmaker_deals WHERE bookmaker_id = $1', [bookmaker_id]);
+
+    // Inserir novos deals
+    for (const deal of deals) {
+      const dealType = deal.isMultiGeography ? 'multi' : 'single';
+      let dealValues = {};
+
+      if (dealType === 'single') {
+        dealValues = {
+          type: deal.dealType,
+          description: deal.dealDescription
+        };
+      } else {
+        dealValues = {
+          geographyDeals: deal.geographyDeals
+        };
+      }
+
+      // Inserir o deal no banco de dados
+      await client.query(
+        `INSERT INTO bookmaker_deals (
+          bookmaker_id,
+          deal_type,
+          deal_values,
+          default_deal,
+          geographies
+        ) VALUES ($1, $2, $3, $4, $5)`,
+        [
+          bookmaker_id,
+          dealType,
+          JSON.stringify(dealValues),
+          deal.defaultDeal === true, 
+          JSON.stringify(deal.geographies || [])
+        ]
+      );
+    }
+
+    await client.end();
+
+    res.json({ 
+      success: true, 
+      message: 'Deals salvos com sucesso!' 
+    });
+  } catch (err) {
+    console.error('Erro ao salvar deals em lote:', err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro ao salvar deals: ' + err.message 
+    });
+  }
 });
 
 // Iniciar servidor
