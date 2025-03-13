@@ -35,13 +35,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // Fallback para caminhos antigos
 app.use('/public/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-// Log do diretório de uploads para verificação
-console.log('Diretório de uploads configurado:', path.join(__dirname, 'public/uploads'));
-if (!fs.existsSync(path.join(__dirname, 'public/uploads'))) {
-  fs.mkdirSync(path.join(__dirname, 'public/uploads'), { recursive: true });
-  console.log('Diretório de uploads criado durante inicialização');
-}
-
 // Certificar-se de que o diretório de uploads existe
 const fs = require('fs');
 const uploadsDir = path.join(__dirname, 'public/uploads');
