@@ -1,3 +1,6 @@
+require('dotenv').config(); // Garante que o .env está carregado
+console.log("DATABASE_URL:", process.env.DATABASE_URL); // Depuração
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
