@@ -504,7 +504,8 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
     status, 
     affiliateUrl,
     selectedCountriesData,
-    savedBookmakerAccountsData
+    savedBookmakerAccountsData,
+    savedBookmakerDealsData
   } = req.body;
   
   if (!nome || nome.trim() === '') {
