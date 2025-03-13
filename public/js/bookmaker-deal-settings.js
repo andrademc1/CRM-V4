@@ -1,10 +1,9 @@
-
 // Funcionalidade para Deal Settings
 document.addEventListener('DOMContentLoaded', function() {
   // Array para armazenar os deals configurados
   let configuredDeals = [];
   const savedBookmakerDealsData = document.getElementById('savedBookmakerDealsData');
-  
+
   // Inicializar savedBookmakerDealsData se não existir
   if (!savedBookmakerDealsData.value) {
     savedBookmakerDealsData.value = JSON.stringify([]);
@@ -27,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function updateDealSettingsInterface() {
     const savedAccountsData = document.getElementById('savedBookmakerAccountsData');
     const savedAccounts = JSON.parse(savedAccountsData.value || '[]');
-    
+
     // Verificar se existem contas salvas
     if (savedAccounts.length === 0) {
       noDealAccounts.style.display = 'block';
@@ -101,21 +100,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Função para abrir o modal de configuração de deal
   function openDealConfigModal(accountIndex) {
-    // Configurar modal para o accountIndex atual
+    dealConfigModal.style.display = 'block';
     dealConfigModal.dataset.accountIndex = accountIndex;
+
+    // Obter a conta atual
+    const savedAccounts = JSON.parse(document.getElementById('savedBookmakerAccountsData').value || '[]');
+    const account = savedAccounts[accountIndex];
+
+    // Verificar número de geografias
+    const hasMultipleGeographies = account && account.countries && account.countries.length > 1;
+
+    // Mostrar ou ocultar o botão de toggle com base no número de geografias
+    if (toggleDealModeButton) {
+      toggleDealModeButton.style.display = hasMultipleGeographies ? 'inline-block' : 'none';
+    }
 
     // Verificar se já existe um deal configurado para esta conta
     const existingDeal = configuredDeals.find(deal => deal.accountIndex === accountIndex);
-    
+
     // Configurar o estado do modal com base no deal existente ou padrão
     if (existingDeal) {
       // Se já existe deal, carregar seus dados
-      if (existingDeal.isMultiGeography) {
+      if (existingDeal.isMultiGeography && hasMultipleGeographies) {
         // Mostrar modo multi e esconder modo single
         dealConfigSingleMode.style.display = 'none';
         dealConfigMultiMode.style.display = 'block';
         toggleDealModeButton.textContent = 'Mudar para Deal Único';
-        
+
         // Preencher os campos de multi geografia
         populateMultiGeographyFields(accountIndex, existingDeal.geographyDeals || []);
       } else {
@@ -123,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dealConfigSingleMode.style.display = 'block';
         dealConfigMultiMode.style.display = 'none';
         toggleDealModeButton.textContent = 'Configurar por Geografia';
-        
+
         // Preencher os campos de deal único
         document.getElementById('dealType').value = existingDeal.dealType || '';
         document.getElementById('dealDescription').value = existingDeal.dealDescription || '';
@@ -133,39 +144,36 @@ document.addEventListener('DOMContentLoaded', function() {
       dealConfigSingleMode.style.display = 'block';
       dealConfigMultiMode.style.display = 'none';
       toggleDealModeButton.textContent = 'Configurar por Geografia';
-      
+
       // Limpar campos
       document.getElementById('dealType').value = '';
       document.getElementById('dealDescription').value = '';
     }
-
-    // Exibir modal
-    dealConfigModal.style.display = 'block';
   }
 
   // Função para preencher os campos de deal multi geografia
   function populateMultiGeographyFields(accountIndex, geographyDeals) {
     const geographyDealsContainer = document.getElementById('geographyDealsContainer');
     geographyDealsContainer.innerHTML = '';
-    
+
     // Obter a conta atual
     const savedAccounts = JSON.parse(document.getElementById('savedBookmakerAccountsData').value || '[]');
     const account = savedAccounts[accountIndex];
-    
+
     if (!account || !account.countries || account.countries.length === 0) {
       geographyDealsContainer.innerHTML = '<p>Esta conta não tem países associados</p>';
       return;
     }
-    
+
     // Para cada país associado à conta, criar um item de deal
     account.countries.forEach(country => {
       // Verificar se já existe um deal configurado para este país
       const existingGeoDeal = geographyDeals.find(deal => deal.countryCode === country.code);
-      
+
       const item = document.createElement('div');
       item.className = 'geography-deal-item';
       item.dataset.countryCode = country.code;
-      
+
       item.innerHTML = `
         <div class="geography-flag-name">
           <span class="country-flag">${country.flag}</span>
@@ -187,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <textarea class="geo-deal-description" rows="2">${existingGeoDeal ? existingGeoDeal.dealDescription || '' : ''}</textarea>
         </div>
       `;
-      
+
       geographyDealsContainer.appendChild(item);
     });
   }
@@ -196,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function saveDealConfiguration() {
     const accountIndex = parseInt(dealConfigModal.dataset.accountIndex);
     const isMultiMode = dealConfigMultiMode.style.display === 'block';
-    
+
     // Validar dados antes de salvar
     if (!isMultiMode) {
       const dealType = document.getElementById('dealType').value;
@@ -234,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const countryCode = item.dataset.countryCode;
         const dealType = item.querySelector('.geo-deal-type').value;
         const dealDescription = item.querySelector('.geo-deal-description').value;
-        
+
         if (dealType) { // Só adicionar se tiver pelo menos o tipo selecionado
           geographyDeals.push({
             countryCode: countryCode,
@@ -245,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
 
       newDeal.geographyDeals = geographyDeals;
-      
+
       // Validar se pelo menos um país tem deal configurado
       if (geographyDeals.length === 0) {
         alert('Configure pelo menos um deal por geografia');
@@ -297,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dealConfigSingleMode.style.display = 'none';
         dealConfigMultiMode.style.display = 'block';
         this.textContent = 'Mudar para Deal Único';
-        
+
         // Preencher campos de geografia
         const accountIndex = parseInt(dealConfigModal.dataset.accountIndex);
         populateMultiGeographyFields(accountIndex, []);
@@ -330,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     });
-    
+
     observer.observe(savedAccountsData, { attributes: true });
   }
 });
