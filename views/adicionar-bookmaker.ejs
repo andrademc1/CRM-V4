@@ -1018,7 +1018,8 @@
 
                             // Adicionar eventos para botões de configuração
                             document.querySelectorAll('.configure-deal-btn').forEach(button => {
-                              button.addEventListener('click', function() {
+                              button.addEventListener('click', function(e) {
+                                e.preventDefault(); // Impedir comportamento padrão do botão
                                 const accountIndex = parseInt(this.dataset.accountIndex);
                                 openDealConfigModal(accountIndex);
                               });
@@ -1034,6 +1035,9 @@
                             const toggleDealModeBtn = document.getElementById('toggleDealMode');
                             const saveDealConfigBtn = document.getElementById('saveDealConfig');
 
+                            // Armazenar o índice da conta no modal para uso posterior
+                            modal.dataset.accountIndex = accountIndex;
+
                             // Verificar se a conta tem múltiplas geografias
                             const hasMultipleGeographies = account.countries && account.countries.length > 1;
 
@@ -1045,8 +1049,8 @@
                             dealConfigSingleMode.style.display = 'block';
                             dealConfigMultiMode.style.display = 'none';
 
-                            // Resetar estado do modo
-                            let isMultiMode = false;
+                            // Resetar estado do modo e armazenar no modal
+                            modal.dataset.isMultiMode = 'false';
 
                             // Carregar dados existentes se houver
                             const deals = JSON.parse(document.getElementById('savedBookmakerDealsData').value || '[]');
@@ -1085,9 +1089,15 @@
                             };
 
                             // Configurar toggle entre modos
-                            toggleDealModeBtn.onclick = function() {
-                              isMultiMode = !isMultiMode;
-                              if (isMultiMode) {
+                            toggleDealModeBtn.onclick = function(e) {
+                              e.preventDefault(); // Prevenir comportamento padrão
+                              const modal = document.getElementById('dealConfigModal');
+                              const isMultiMode = modal.dataset.isMultiMode === 'true';
+                              
+                              // Alternar o modo
+                              modal.dataset.isMultiMode = isMultiMode ? 'false' : 'true';
+                              
+                              if (modal.dataset.isMultiMode === 'true') {
                                 dealConfigSingleMode.style.display = 'none';
                                 dealConfigMultiMode.style.display = 'block';
                                 this.textContent = 'Configurar para Todos';
@@ -1103,7 +1113,11 @@
                             };
 
                             // Configurar salvamento
-                            saveDealConfigBtn.onclick = function() {
+                            saveDealConfigBtn.onclick = function(e) {
+                              e.preventDefault(); // Prevenir comportamento padrão
+                              const modal = document.getElementById('dealConfigModal');
+                              const accountIndex = parseInt(modal.dataset.accountIndex);
+                              const isMultiMode = modal.dataset.isMultiMode === 'true';
                               saveDealConfiguration(accountIndex, isMultiMode);
                             };
                           }
@@ -1153,6 +1167,15 @@
 
                           // Função para salvar configuração de deal
                           function saveDealConfiguration(accountIndex, isMultiMode) {
+                            // Validar dados antes de salvar
+                            if (!isMultiMode) {
+                              const dealType = document.getElementById('dealType').value;
+                              if (!dealType) {
+                                alert('Por favor, selecione um tipo de deal');
+                                return;
+                              }
+                            }
+
                             const deals = JSON.parse(document.getElementById('savedBookmakerDealsData').value || '[]');
 
                             // Remover deal existente se houver
