@@ -577,6 +577,53 @@ app.post('/bookmakers/adicionar-bookmaker', requireLogin, upload.single('bookmak
       }
     }
 
+    // Processar deals do bookmaker
+    if (savedBookmakerDealsData) {
+      try {
+        console.log('Processando dados de deals:', savedBookmakerDealsData);
+        const deals = JSON.parse(savedBookmakerDealsData);
+        const bookmakerId = bookmakerResult.rows[0].id;
+
+        for (const deal of deals) {
+          const dealType = deal.isMultiGeography ? 'multi' : 'single';
+          let dealValues = {};
+
+          if (dealType === 'single') {
+            dealValues = {
+              type: deal.dealType,
+              description: deal.dealDescription
+            };
+          } else {
+            dealValues = {
+              geographyDeals: deal.geographyDeals
+            };
+          }
+
+          // Inserir o deal no banco de dados
+          await client.query(
+            `INSERT INTO bookmaker_deals (
+              bookmaker_id,
+              deal_type,
+              deal_values,
+              default_deal,
+              geographies
+            ) VALUES ($1, $2, $3, $4, $5)`,
+            [
+              bookmakerId,
+              dealType,
+              JSON.stringify(dealValues),
+              deal.defaultDeal === true, 
+              JSON.stringify(deal.geographies || [])
+            ]
+          );
+        }
+        
+        console.log(`${deals.length} deals processados com sucesso`);
+      } catch (e) {
+        console.error('Erro ao processar deals do bookmaker:', e);
+      }
+    }
+
     await client.end();
 
     // Adicionar mensagem de sucesso à sessão

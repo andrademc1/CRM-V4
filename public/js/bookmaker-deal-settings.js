@@ -1,13 +1,33 @@
 
 // Funcionalidade para Deal Settings
 document.addEventListener('DOMContentLoaded', function() {
+  // Array para armazenar os deals configurados
+  let configuredDeals = [];
+  const savedBookmakerDealsData = document.getElementById('savedBookmakerDealsData');
+  
+  // Inicializar savedBookmakerDealsData se não existir
+  if (!savedBookmakerDealsData.value) {
+    savedBookmakerDealsData.value = JSON.stringify([]);
+  }
+
+  // Elementos do modal
+  const dealConfigModal = document.getElementById('dealConfigModal');
+  const closeModalButton = document.querySelector('.close-modal');
+  const saveDealConfigButton = document.getElementById('saveDealConfig');
+  const toggleDealModeButton = document.getElementById('toggleDealMode');
+  const dealConfigSingleMode = document.getElementById('dealConfigSingleMode');
+  const dealConfigMultiMode = document.getElementById('dealConfigMultiMode');
+
+  // Referências aos elementos de deal settings
+  const noDealAccounts = document.getElementById('noDealAccounts');
+  const dealSettingsContainer = document.getElementById('dealSettingsContainer');
+  const accountDealList = document.getElementById('accountDealList');
+
   // Função para atualizar a interface de Deal Settings com base nas contas salvas
   function updateDealSettingsInterface() {
-    const savedAccounts = JSON.parse(document.getElementById('savedBookmakerAccountsData').value || '[]');
-    const accountDealList = document.getElementById('accountDealList');
-    const noDealAccounts = document.getElementById('noDealAccounts');
-    const dealSettingsContainer = document.getElementById('dealSettingsContainer');
-
+    const savedAccountsData = document.getElementById('savedBookmakerAccountsData');
+    const savedAccounts = JSON.parse(savedAccountsData.value || '[]');
+    
     // Verificar se existem contas salvas
     if (savedAccounts.length === 0) {
       noDealAccounts.style.display = 'block';
@@ -29,182 +49,154 @@ document.addEventListener('DOMContentLoaded', function() {
       card.dataset.accountIndex = index;
 
       // Verificar se já existe um deal configurado para esta conta
-      const deals = JSON.parse(document.getElementById('savedBookmakerDealsData').value || '[]');
-      const accountDeal = deals.find(deal => deal.accountIndex === index);
+      const existingDeal = configuredDeals.find(deal => deal.accountIndex === index);
+      const dealConfigured = existingDeal !== undefined;
 
-      let statusClass = accountDeal ? 'deal-status-configured' : 'deal-status-pending';
-      let statusText = accountDeal ? 'Configurado' : 'Pendente';
-
-      let countriesInfo = '';
+      // Países associados a esta conta (para exibição)
+      let countriesHtml = '';
       if (account.countries && account.countries.length > 0) {
-        countriesInfo = `<p><strong>Geografias:</strong> ${account.countries.length} associadas</p>`;
-      } else {
-        countriesInfo = '<p><strong>Geografias:</strong> Nenhuma</p>';
+        countriesHtml = '<p><strong>Países associados:</strong></p><div class="account-countries">';
+        account.countries.forEach(country => {
+          countriesHtml += `<span class="country-mini-badge"><span class="country-flag">${country.flag}</span> ${country.name}</span>`;
+        });
+        countriesHtml += '</div>';
       }
 
+      // Status do deal
+      const statusClass = dealConfigured ? 'deal-status-configured' : 'deal-status-pending';
+      const statusText = dealConfigured ? 'Configurado' : 'Pendente';
+
+      // Informações do deal configurado
+      let dealInfoHtml = '';
+      if (dealConfigured) {
+        if (existingDeal.isMultiGeography) {
+          dealInfoHtml = '<p><strong>Tipo:</strong> Multi-Geografia</p>';
+        } else {
+          dealInfoHtml = `
+            <p><strong>Tipo:</strong> ${existingDeal.dealType}</p>
+            <p><strong>Descrição:</strong> ${existingDeal.dealDescription || 'N/A'}</p>
+          `;
+        }
+      }
+
+      // Montar HTML do card
       card.innerHTML = `
-        <span class="deal-status ${statusClass}">${statusText}</span>
         <h5>${account.owner}</h5>
-        <p><strong>Username:</strong> ${account.username}</p>
-        ${countriesInfo}
-        <button class="configure-deal-btn" data-account-index="${index}">Configurar Deal</button>
+        <span class="deal-status ${statusClass}">${statusText}</span>
+        ${dealInfoHtml}
+        ${countriesHtml}
+        <button type="button" class="configure-deal-btn" data-account-index="${index}">Configurar Deal</button>
       `;
 
       accountDealList.appendChild(card);
-    });
 
-    // Adicionar eventos para botões de configuração
-    document.querySelectorAll('.configure-deal-btn').forEach(button => {
-      button.addEventListener('click', function(e) {
-        e.preventDefault(); // Impedir comportamento padrão do botão
-        const accountIndex = parseInt(this.dataset.accountIndex);
-        openDealConfigModal(accountIndex);
+      // Adicionar event listener para o botão de configurar deal
+      const configureButton = card.querySelector('.configure-deal-btn');
+      configureButton.addEventListener('click', function(e) {
+        e.preventDefault(); // Impedir submissão do formulário
+        openDealConfigModal(parseInt(this.dataset.accountIndex));
       });
     });
   }
 
-  // Função para abrir modal de configuração de deal
+  // Função para abrir o modal de configuração de deal
   function openDealConfigModal(accountIndex) {
-    const modal = document.getElementById('dealConfigModal');
-    const account = JSON.parse(document.getElementById('savedBookmakerAccountsData').value || '[]')[accountIndex];
-    const dealConfigSingleMode = document.getElementById('dealConfigSingleMode');
-    const dealConfigMultiMode = document.getElementById('dealConfigMultiMode');
-    const toggleDealModeBtn = document.getElementById('toggleDealMode');
-    const saveDealConfigBtn = document.getElementById('saveDealConfig');
+    // Configurar modal para o accountIndex atual
+    dealConfigModal.dataset.accountIndex = accountIndex;
 
-    // Armazenar o índice da conta no modal para uso posterior
-    modal.dataset.accountIndex = accountIndex;
-
-    // Verificar se a conta tem múltiplas geografias
-    const hasMultipleGeographies = account.countries && account.countries.length > 1;
-
-    // Se não tiver múltiplas geografias, desabilitar botão de toggle
-    toggleDealModeBtn.disabled = !hasMultipleGeographies;
-    toggleDealModeBtn.style.display = hasMultipleGeographies ? 'block' : 'none';
-
-    // Iniciar no modo single
-    dealConfigSingleMode.style.display = 'block';
-    dealConfigMultiMode.style.display = 'none';
-
-    // Resetar estado do modo e armazenar no modal
-    modal.dataset.isMultiMode = 'false';
-
-    // Carregar dados existentes se houver
-    const deals = JSON.parse(document.getElementById('savedBookmakerDealsData').value || '[]');
-    const existingDeal = deals.find(deal => deal.accountIndex === accountIndex);
-
+    // Verificar se já existe um deal configurado para esta conta
+    const existingDeal = configuredDeals.find(deal => deal.accountIndex === accountIndex);
+    
+    // Configurar o estado do modal com base no deal existente ou padrão
     if (existingDeal) {
+      // Se já existe deal, carregar seus dados
       if (existingDeal.isMultiGeography) {
-        // Se for multi-geografia, preencher o modo multi
-        modal.dataset.isMultiMode = 'true';
+        // Mostrar modo multi e esconder modo single
         dealConfigSingleMode.style.display = 'none';
         dealConfigMultiMode.style.display = 'block';
-        toggleDealModeBtn.textContent = 'Configurar para Todos';
-
-        // Preencher dados para cada geografia
-        populateGeographyDeals(account.countries, existingDeal.geographyDeals);
+        toggleDealModeButton.textContent = 'Mudar para Deal Único';
+        
+        // Preencher os campos de multi geografia
+        populateMultiGeographyFields(accountIndex, existingDeal.geographyDeals || []);
       } else {
-        // Se for single, preencher o modo single
-        document.getElementById('dealType').value = existingDeal.dealType || 'Rev Share';
-        document.getElementById('dealDescription').value = existingDeal.dealDescription || '';
-      }
-    }
-
-    // Mostrar modal
-    modal.style.display = 'block';
-
-    // Configurar evento para fechar o modal
-    document.querySelector('.close-modal').onclick = function() {
-      modal.style.display = 'none';
-    };
-
-    // Fechar modal clicando fora
-    window.onclick = function(event) {
-      if (event.target === modal) {
-        modal.style.display = 'none';
-      }
-    };
-
-    // Configurar toggle entre modos
-    toggleDealModeBtn.onclick = function(e) {
-      e.preventDefault(); // Prevenir comportamento padrão
-      const isMultiMode = modal.dataset.isMultiMode === 'true';
-      
-      // Alternar o modo
-      modal.dataset.isMultiMode = isMultiMode ? 'false' : 'true';
-      
-      if (modal.dataset.isMultiMode === 'true') {
-        dealConfigSingleMode.style.display = 'none';
-        dealConfigMultiMode.style.display = 'block';
-        this.textContent = 'Configurar para Todos';
-
-        // Preencher dados de geografia
-        populateGeographyDeals(account.countries, 
-          existingDeal && existingDeal.isMultiGeography ? existingDeal.geographyDeals : null);
-      } else {
+        // Mostrar modo single e esconder modo multi
         dealConfigSingleMode.style.display = 'block';
         dealConfigMultiMode.style.display = 'none';
-        this.textContent = 'Configurar por Geografia';
+        toggleDealModeButton.textContent = 'Configurar por Geografia';
+        
+        // Preencher os campos de deal único
+        document.getElementById('dealType').value = existingDeal.dealType || '';
+        document.getElementById('dealDescription').value = existingDeal.dealDescription || '';
       }
-    };
-
-    // Configurar salvamento
-    saveDealConfigBtn.onclick = function(e) {
-      e.preventDefault(); // Prevenir comportamento padrão
-      saveDealConfiguration(accountIndex, modal.dataset.isMultiMode === 'true');
-    };
-  }
-
-  // Função para popular as configurações de geografia
-  function populateGeographyDeals(countries, existingGeographyDeals) {
-    const container = document.getElementById('geographyDealsContainer');
-    container.innerHTML = '';
-
-    if (!countries || countries.length === 0) {
-      container.innerHTML = '<p>Nenhuma geografia disponível para esta conta.</p>';
-      return;
+    } else {
+      // Se não existe deal, iniciar em modo single padrão
+      dealConfigSingleMode.style.display = 'block';
+      dealConfigMultiMode.style.display = 'none';
+      toggleDealModeButton.textContent = 'Configurar por Geografia';
+      
+      // Limpar campos
+      document.getElementById('dealType').value = '';
+      document.getElementById('dealDescription').value = '';
     }
 
-    countries.forEach((country) => {
-      const existingDeal = existingGeographyDeals ? 
-        existingGeographyDeals.find(deal => deal.countryCode === country.code) : null;
+    // Exibir modal
+    dealConfigModal.style.display = 'block';
+  }
 
-      const dealType = existingDeal ? existingDeal.dealType : 'Rev Share';
-      const dealDescription = existingDeal ? existingDeal.dealDescription : '';
-
+  // Função para preencher os campos de deal multi geografia
+  function populateMultiGeographyFields(accountIndex, geographyDeals) {
+    const geographyDealsContainer = document.getElementById('geographyDealsContainer');
+    geographyDealsContainer.innerHTML = '';
+    
+    // Obter a conta atual
+    const savedAccounts = JSON.parse(document.getElementById('savedBookmakerAccountsData').value || '[]');
+    const account = savedAccounts[accountIndex];
+    
+    if (!account || !account.countries || account.countries.length === 0) {
+      geographyDealsContainer.innerHTML = '<p>Esta conta não tem países associados</p>';
+      return;
+    }
+    
+    // Para cada país associado à conta, criar um item de deal
+    account.countries.forEach(country => {
+      // Verificar se já existe um deal configurado para este país
+      const existingGeoDeal = geographyDeals.find(deal => deal.countryCode === country.code);
+      
       const item = document.createElement('div');
       item.className = 'geography-deal-item';
       item.dataset.countryCode = country.code;
-
+      
       item.innerHTML = `
         <div class="geography-flag-name">
           <span class="country-flag">${country.flag}</span>
           <span>${country.name}</span>
         </div>
-
         <div class="form-group">
           <label>Deal Type:</label>
           <select class="geo-deal-type">
-            <option value="Rev Share" ${dealType === 'Rev Share' ? 'selected' : ''}>Rev Share</option>
-            <option value="CPA" ${dealType === 'CPA' ? 'selected' : ''}>CPA</option>
-            <option value="Hybrid" ${dealType === 'Hybrid' ? 'selected' : ''}>Hybrid</option>
-            <option value="Flat Fee" ${dealType === 'Flat Fee' ? 'selected' : ''}>Flat Fee</option>
-            <option value="Other" ${dealType === 'Other' ? 'selected' : ''}>Other</option>
+            <option value="">Selecione um tipo</option>
+            <option value="Rev Share" ${existingGeoDeal && existingGeoDeal.dealType === 'Rev Share' ? 'selected' : ''}>Rev Share</option>
+            <option value="CPA" ${existingGeoDeal && existingGeoDeal.dealType === 'CPA' ? 'selected' : ''}>CPA</option>
+            <option value="Hybrid" ${existingGeoDeal && existingGeoDeal.dealType === 'Hybrid' ? 'selected' : ''}>Hybrid</option>
+            <option value="Flat Fee" ${existingGeoDeal && existingGeoDeal.dealType === 'Flat Fee' ? 'selected' : ''}>Flat Fee</option>
+            <option value="Other" ${existingGeoDeal && existingGeoDeal.dealType === 'Other' ? 'selected' : ''}>Other</option>
           </select>
         </div>
-
         <div class="form-group">
           <label>Deal Description:</label>
-          <textarea class="geo-deal-description" rows="2">${dealDescription}</textarea>
+          <textarea class="geo-deal-description" rows="2">${existingGeoDeal ? existingGeoDeal.dealDescription || '' : ''}</textarea>
         </div>
       `;
-
-      container.appendChild(item);
+      
+      geographyDealsContainer.appendChild(item);
     });
   }
 
   // Função para salvar configuração de deal
-  function saveDealConfiguration(accountIndex, isMultiMode) {
+  function saveDealConfiguration() {
+    const accountIndex = parseInt(dealConfigModal.dataset.accountIndex);
+    const isMultiMode = dealConfigMultiMode.style.display === 'block';
+    
     // Validar dados antes de salvar
     if (!isMultiMode) {
       const dealType = document.getElementById('dealType').value;
@@ -214,18 +206,23 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    const deals = JSON.parse(document.getElementById('savedBookmakerDealsData').value || '[]');
-
     // Remover deal existente se houver
-    const existingDealIndex = deals.findIndex(deal => deal.accountIndex === accountIndex);
+    const existingDealIndex = configuredDeals.findIndex(deal => deal.accountIndex === accountIndex);
     if (existingDealIndex !== -1) {
-      deals.splice(existingDealIndex, 1);
+      configuredDeals.splice(existingDealIndex, 1);
     }
+
+    // Obter a conta para associar as geografias
+    const savedAccounts = JSON.parse(document.getElementById('savedBookmakerAccountsData').value || '[]');
+    const account = savedAccounts[accountIndex];
+    const geographies = account && account.countries ? account.countries.map(c => ({ code: c.code, name: c.name })) : [];
 
     // Criar novo deal
     let newDeal = {
       accountIndex: accountIndex,
-      isMultiGeography: isMultiMode
+      isMultiGeography: isMultiMode,
+      geographies: geographies,
+      defaultDeal: true // Por padrão, considerar como deal principal
     };
 
     if (isMultiMode) {
@@ -234,14 +231,26 @@ document.addEventListener('DOMContentLoaded', function() {
       const geographyDeals = [];
 
       geographyItems.forEach(item => {
-        geographyDeals.push({
-          countryCode: item.dataset.countryCode,
-          dealType: item.querySelector('.geo-deal-type').value,
-          dealDescription: item.querySelector('.geo-deal-description').value
-        });
+        const countryCode = item.dataset.countryCode;
+        const dealType = item.querySelector('.geo-deal-type').value;
+        const dealDescription = item.querySelector('.geo-deal-description').value;
+        
+        if (dealType) { // Só adicionar se tiver pelo menos o tipo selecionado
+          geographyDeals.push({
+            countryCode: countryCode,
+            dealType: dealType,
+            dealDescription: dealDescription
+          });
+        }
       });
 
       newDeal.geographyDeals = geographyDeals;
+      
+      // Validar se pelo menos um país tem deal configurado
+      if (geographyDeals.length === 0) {
+        alert('Configure pelo menos um deal por geografia');
+        return;
+      }
     } else {
       // Coletar dados de deal geral
       newDeal.dealType = document.getElementById('dealType').value;
@@ -249,18 +258,56 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Adicionar à lista de deals
-    deals.push(newDeal);
+    configuredDeals.push(newDeal);
 
     // Atualizar o input hidden
-    document.getElementById('savedBookmakerDealsData').value = JSON.stringify(deals);
+    savedBookmakerDealsData.value = JSON.stringify(configuredDeals);
 
     // Fechar modal
-    document.getElementById('dealConfigModal').style.display = 'none';
+    dealConfigModal.style.display = 'none';
 
     // Atualizar interface
     updateDealSettingsInterface();
+  }
 
-    alert('Deal configurado com sucesso!');
+  // Event listener para fechar o modal quando clicar no X
+  if (closeModalButton) {
+    closeModalButton.addEventListener('click', function() {
+      dealConfigModal.style.display = 'none';
+    });
+  }
+
+  // Event listener para fechar o modal quando clicar fora dele
+  window.addEventListener('click', function(event) {
+    if (event.target === dealConfigModal) {
+      dealConfigModal.style.display = 'none';
+    }
+  });
+
+  // Event listener para salvar a configuração de deal
+  if (saveDealConfigButton) {
+    saveDealConfigButton.addEventListener('click', saveDealConfiguration);
+  }
+
+  // Event listener para alternar entre modos single e multi
+  if (toggleDealModeButton) {
+    toggleDealModeButton.addEventListener('click', function() {
+      if (dealConfigSingleMode.style.display === 'block') {
+        // Mudar para modo multi
+        dealConfigSingleMode.style.display = 'none';
+        dealConfigMultiMode.style.display = 'block';
+        this.textContent = 'Mudar para Deal Único';
+        
+        // Preencher campos de geografia
+        const accountIndex = parseInt(dealConfigModal.dataset.accountIndex);
+        populateMultiGeographyFields(accountIndex, []);
+      } else {
+        // Mudar para modo single
+        dealConfigSingleMode.style.display = 'block';
+        dealConfigMultiMode.style.display = 'none';
+        this.textContent = 'Configurar por Geografia';
+      }
+    });
   }
 
   // Observar mudanças na aba de contas
@@ -273,19 +320,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Inicializar savedBookmakerDealsData se não existir
-  if (!document.getElementById('savedBookmakerDealsData').value) {
-    document.getElementById('savedBookmakerDealsData').value = JSON.stringify([]);
-  }
-
   // Observar mudanças nas contas
-  const observer = new MutationObserver(function() {
-    updateDealSettingsInterface();
-  });
-
-  // Observar o container de contas salvas
-  const accountsList = document.getElementById('accountsList');
-  if (accountsList) {
-    observer.observe(accountsList, { childList: true });
+  const savedAccountsData = document.getElementById('savedBookmakerAccountsData');
+  if (savedAccountsData) {
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+          updateDealSettingsInterface();
+        }
+      });
+    });
+    
+    observer.observe(savedAccountsData, { attributes: true });
   }
 });

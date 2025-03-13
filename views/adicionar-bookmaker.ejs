@@ -229,9 +229,26 @@
                                 </div>
 
                                 <div class="form-actions">
-                                  <button type="submit" class="btn btn-primary">Salvar</button>
+                                  <button type="submit" class="btn btn-primary" id="salvarFormulario">Salvar</button>
                                   <a href="/bookmakers" class="btn btn-secondary" style="flex: 1; text-align: center;">Cancelar</a>
                                 </div>
+
+                                <script>
+                                  // Verificar e processar deals antes do envio do formulário
+                                  document.getElementById('salvarFormulario').addEventListener('click', function(e) {
+                                    const dealsData = document.getElementById('savedBookmakerDealsData').value;
+                                    
+                                    if (dealsData) {
+                                      // Garantir que os deals sejam processados corretamente
+                                      try {
+                                        const deals = JSON.parse(dealsData);
+                                        console.log('Enviando deals para o servidor:', deals);
+                                      } catch (err) {
+                                        console.error('Erro ao processar dados de deals:', err);
+                                      }
+                                    }
+                                  });
+                                </script>
                               </form>
                             </div>
                           </main>
